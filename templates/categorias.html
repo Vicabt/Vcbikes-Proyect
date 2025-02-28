@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Categorías - VcBikes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .categories-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .categories-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .category-form {
+        background-color: var(--bs-body-bg);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .categories-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .category-item {
+        background-color: var(--bs-body-bg);
+        border-radius: 10px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid var(--bs-border-color);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .category-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-item h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--bs-body-color);
+    }
+    
+    .category-item p {
+        color: var(--bs-secondary-color);
+        flex-grow: 1;
+    }
+    
+    .category-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-edit, .btn-delete {
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+    
+    .btn-edit {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background-color: #0b5ed7;
+    }
+    
+    .btn-delete:hover {
+        background-color: #bb2d3b;
+    }
+    
+    @media (max-width: 768px) {
+        .categories-container {
+            padding: 1rem;
+        }
+        
+        .category-form {
+            padding: 1.5rem;
+        }
+        
+        .categories-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="categories-container">
+    <div class="categories-header">
+        <h1>Gestión de Categorías</h1>
+        <p>Administra las categorías de productos en tu inventario</p>
+    </div>
+
+    <div class="category-form">
+        <h2>Agregar Nueva Categoría</h2>
+        <form method="POST" action="{{ url_for('categorias') }}">
+            <div class="form-group">
+                <label for="category_name" class="form-label">Nombre de la Categoría</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-tag"></i>
+                    </span>
+                    <input type="text" class="form-control" id="category_name" name="category_name" required
+                           placeholder="Ej: Motocicletas, Repuestos, Accesorios">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="category_description" class="form-label">Descripción</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-align-left"></i>
+                    </span>
+                    <textarea class="form-control" id="category_description" name="category_description" rows="3"
+                              placeholder="Breve descripción de la categoría"></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Agregar Categoría
+            </button>
+        </form>
+    </div>
+
+    <h2>Categorías Existentes</h2>
+    <div class="categories-list">
+        {% for category in categories %}
+        <div class="category-item">
+            <h2>{{ category.name }}</h2>
+            <p>{{ category.description }}</p>
+            <div class="category-actions">
+                <a href="{{ url_for('editar_categoria', category_id=category.id) }}" class="btn btn-edit">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <form method="POST" action="{{ url_for('eliminar_categoria', category_id=category.id) }}"
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-delete"
+                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta categoría?')">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Obtener el nombre de la categoría desde el título
+                const categoryTitle = this.closest('.category-item').querySelector('h2').textContent;
+                
+                if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${categoryTitle}"?`)) {
+                    // Aquí iría la lógica para eliminar la categoría
+                    console.log(`Categoría "${categoryTitle}" eliminada`);
+                    // Efecto visual temporal (en producción se haría una petición AJAX)
+                    this.closest('.category-item').style.opacity = '0.5';
+                }
+            });
+        });
+        
+        const editButtons = document.querySelectorAll('.btn-edit');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Obtener el nombre de la categoría desde el título
+                const categoryItem = this.closest('.category-item');
+                const categoryTitle = categoryItem.querySelector('h2').textContent;
+                const categoryDescription = categoryItem.querySelector('p').textContent;
+                
+                // Rellenar el formulario con los datos de la categoría
+                document.getElementById('category_name').value = categoryTitle;
+                document.getElementById('category_description').value = categoryDescription;
+                
+                // Hacer scroll hasta el formulario
+                document.querySelector('.category-form').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    });
+</script>
+{% endblock %}

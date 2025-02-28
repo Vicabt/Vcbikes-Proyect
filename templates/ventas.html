@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}VcBikes - Gestión de Ventas{% endblock %}
+
+{% block body_class %}ventas-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">Gestión de Ventas</h1>
+            <p class="text-muted">Consulta y administra las ventas realizadas en tu tienda</p>
+        </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fechaInicio">
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fechaFin">
+                </div>
+                <div class="col-md-4">
+                    <label for="estadoVenta" class="form-label">Estado</label>
+                    <select class="form-select" id="estadoVenta">
+                        <option value="">Todos</option>
+                        <option value="completado">Completado</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label for="buscarVenta" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="buscarVenta" placeholder="Buscar por cliente, producto o ID de venta...">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Ventas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-container mb-3">
+                        <i class="fas fa-shopping-cart fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">24</h5>
+                    <p class="card-text text-muted">Ventas este mes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-container mb-3">
+                        <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                    </div>
+                    <h5 class="card-title">$2,450.00</h5>
+                    <p class="card-text text-muted">Ingresos totales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-container mb-3">
+                        <i class="fas fa-chart-line fa-2x text-info"></i>
+                    </div>
+                    <h5 class="card-title">15%</h5>
+                    <p class="card-text text-muted">Incremento vs mes anterior</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-container mb-3">
+                        <i class="fas fa-clipboard-check fa-2x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">3</h5>
+                    <p class="card-text text-muted">Ventas pendientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Ventas -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Listado de Ventas</h5>
+            <button class="btn btn-sm btn-success">
+                <i class="fas fa-plus me-2"></i>Nueva Venta
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">#ID</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Productos</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>V-001</td>
+                            <td>21/02/2025</td>
+                            <td>Juan Pérez</td>
+                            <td>Bicicleta Montaña X3</td>
+                            <td>$599.99</td>
+                            <td><span class="badge bg-success">Completado</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>V-002</td>
+                            <td>20/02/2025</td>
+                            <td>María López</td>
+                            <td>Kit Accesorios Pro</td>
+                            <td>$129.50</td>
+                            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>V-003</td>
+                            <td>18/02/2025</td>
+                            <td>Carlos Rodríguez</td>
+                            <td>Casco Seguridad Elite, Guantes Pro</td>
+                            <td>$89.99</td>
+                            <td><span class="badge bg-success">Completado</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>V-004</td>
+                            <td>15/02/2025</td>
+                            <td>Ana Martínez</td>
+                            <td>Bicicleta Urbana C2, Kit Luces</td>
+                            <td>$459.99</td>
+                            <td><span class="badge bg-danger">Cancelado</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>V-005</td>
+                            <td>12/02/2025</td>
+                            <td>Roberto Sánchez</td>
+                            <td>Herramientas Mantenimiento</td>
+                            <td>$45.99</td>
+                            <td><span class="badge bg-success">Completado</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener fecha actual para los filtros de fecha
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        
+        // Formatear fechas para input date (YYYY-MM-DD)
+        document.getElementById('fechaInicio').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('fechaFin').value = today.toISOString().split('T')[0];
+        
+        // Funcionalidad para los botones de la tabla (ejemplo)
+        const btnInfoList = document.querySelectorAll('.btn-info');
+        btnInfoList.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const ventaId = row.cells[0].textContent;
+                alert(`Ver detalles de la venta ${ventaId}`);
+                // Aquí puedes agregar lógica para mostrar detalles (modal, redirección, etc.)
+            });
+        });
+    });
+</script>
+{% endblock %}

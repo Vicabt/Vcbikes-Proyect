@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}VcBikes - Gestión de Clientes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title"><i class="fas fa-users me-2"></i>Gestión de Clientes</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addclienteModal">
+            <i class="fas fa-user-plus me-1"></i> Nuevo Cliente
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Estado</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="searchcliente" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="searchcliente" placeholder="Nombre, email, teléfono...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de clientes -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Ejemplo de datos -->
+                        <tr>
+                            <td>1</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
+                            <td>María López</td>
+                            <td>maria.lopez@vcbikes.com</td>
+                            <td>+57 321 456 7890</td>
+                            <td><span class="badge bg-success">Activo</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclienteModal" onclick="editcliente(1)"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(1)"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(1)"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
+                            <td>Carlos Rodríguez</td>
+                            <td>carlos.rodriguez@vcbikes.com</td>
+                            <td>+57 300 123 4567</td>
+                            <td><span class="badge bg-success">Activo</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclenteModal" onclick="editcliente(2)"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(2)"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(2)"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
+                            <td>Andrés Gómez</td>
+                            <td>andres.gomez@vcbikes.com</td>
+                            <td>+57 315 987 6543</td>
+                            <td><span class="badge bg-success">Activo</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclenteModal" onclick="editcliente(3)"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(3)"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(3)"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación de clientes">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar cliente -->
+<div class="modal fade" id="addclienteModal" tabindex="-1" aria-labelledby="addclienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addclienteModalLabel">Agregar Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="clienteForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="clienteName" class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" id="clienteName" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="clienteEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="clienteEmail" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="clientePhone" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="clientePhone" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="clienteDocument" class="form-label">Documento de Identidad</label>
+                            <input type="text" class="form-control" id="clienteDocument" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="clienteAddress" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="clienteAddress">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="clienteActive" checked>
+                            <label class="form-check-label" for="clienteActive">
+                                Cliente activo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Guardar Empleado</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar cliente -->
+<div class="modal fade" id="editclienteModal" tabindex="-1" aria-labelledby="editclienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editclienteModalLabel">Editar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editclienteForm">
+                    <!-- Campos del formulario de edición -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles del cliente -->
+<div class="modal fade" id="viewclienteModal" tabindex="-1" aria-labelledby="viewclienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewclienteModalLabel">Detalles del Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewclienteForm">
+                    <!-- Campos del formulario de visualización -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para editar cliente
+        window.editcliente = function(id) {
+            // Lógica para cargar los datos del cliente en el formulario de edición
+            console.log('Editar cliente', id);
+        };
+
+        // Función para eliminar cliente
+        window.deletecliente = function(id) {
+            // Lógica para eliminar el cliente
+            console.log('Eliminar cliente', id);
+        };
+
+        // Función para ver detalles del cliente
+        window.viewcliente = function(id) {
+            // Lógica para cargar los datos del cliente en el formulario de visualización
+            console.log('Ver detalles del cliente', id);
+        };
+    });
+</script>
+{% endblock %}

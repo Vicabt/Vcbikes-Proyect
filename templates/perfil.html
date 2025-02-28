@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}VcBikes - Perfil de Usuario{% endblock %}
+
+{% block body_class %}perfil-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">Perfil de Usuario</h1>
+            <p class="text-muted">Gestiona tu información personal y preferencias</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Tarjeta de perfil -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    
+                    <h4 class="card-title">{{ nombre }} {{ apellido }}</h4>  <!-- Usar las variables aquí -->
+                    <p class="text-muted mb-1">Administrador</p>
+                    <p class="text-muted mb-3">{{ email }}</p>  <!-- Usar la variable aquí -->
+                    <p class="mb-2"><i class="fas fa-calendar me-2"></i>Miembro desde: 10/01/2024</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i>Ubicación: Bogotá, Colombia</p>
+                    <hr>
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-outline-danger me-2">
+                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-key me-1"></i>Cambiar Contraseña
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de datos personales -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Información Personal</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm" method="POST" action="{{ url_for('perfil') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="apellido" class="form-label">Apellido</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" value="{{ apellido }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Correo Electrónico</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ email }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ telefono }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                             <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control" id="direccion" name="direccion" value="{{ direccion }}">
+                                </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="ciudad" class="form-label">Ciudad</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                    <input type="text" class="form-control" id="ciudad" name="ciudad" value="{{ ciudad }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="estado" class="form-label">Departamento</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map"></i></span>
+                                    <input type="text" class="form-control" id="estado" name="estado" value="{{ estado }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="codigo_postal" class="form-label">Código Postal</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-mail-bulk"></i></span>
+                                    <input type="text" class="form-control" id="codigo_postal" name="codigo_postal" value="{{ codigo_postal }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="biografia" class="form-label">Biografía/Información adicional</label>
+                             <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-book"></i></span>
+                                <textarea class="form-control" id="biografia" name="biografia" rows="3">{{ biografia }}</textarea>
+                                </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Actividad reciente -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Actividad Reciente</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for actividad in actividades %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-history text-muted me-2"></i>  <!-- Puedes cambiar el ícono según el tipo de actividad -->
+                                <span>{{ actividad.descripcion }}</span>
+                                <small class="d-block text-muted">Usuario ID: {{ actividad.usuario_id }}</small>
+                            </div>
+                            <span class="text-muted">{{ actividad.fecha }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="#" class="btn btn-sm btn-link">Ver todo el historial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+{% endblock %}

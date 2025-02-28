@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}VcBikes - Gestión de Productos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title"><i class="fas fa-bicycle me-2"></i>Gestión de Productos</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus me-1"></i> Nuevo Producto
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="categoriaFilter" class="form-label">Categoría</label>
+                    <select class="form-select" id="categoriaFilter">
+                        <option value="">Todas las categorías</option>
+                        {% for categoria in categorias %}
+                        <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="stockFilter" class="form-label">Stock</label>
+                    <select class="form-select" id="stockFilter">
+                        <option value="">Todos</option>
+                        <option value="low">Bajo stock</option>
+                        <option value="out">Sin stock</option>
+                        <option value="available">Disponible</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="searchProduct" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="searchProduct" placeholder="Nombre, código, marca...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Ejemplo de datos -->
+                        <tr>
+                            <td>BK001</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
+                            <td>Bicicleta Mountain Bike 29"</td>
+                            <td>Mountain Bike</td>
+                            <td>$599.99</td>
+                            <td>15</td>
+                            <td><span class="badge bg-success">Activo</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>BK002</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
+                            <td>Casco Protector Profesional</td>
+                            <td>Accesorios</td>
+                            <td>$89.99</td>
+                            <td>3</td>
+                            <td><span class="badge bg-warning text-dark">Bajo Stock</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>BK003</td>
+                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
+                            <td>Kit de Herramientas para Bicicleta</td>
+                            <td>Herramientas</td>
+                            <td>$45.50</td>
+                            <td>0</td>
+                            <td><span class="badge bg-danger">Agotado</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación de productos">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar producto -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Agregar Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="productCode" class="form-label">Código</label>
+                            <input type="text" class="form-control" id="productCode" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="productCategory" class="form-label">Categoría</label>
+                            <select class="form-select" id="productCategory" required>
+                                <option value="">Seleccionar categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Nombre del producto</label>
+                        <input type="text" class="form-control" id="productName" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="productPrice" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="productPrice" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="productStock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="productStock" min="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productImage" class="form-label">Imagen</label>
+                        <input type="file" class="form-control" id="productImage">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="productActive" checked>
+                            <label class="form-check-label" for="productActive">
+                                Producto activo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar producto -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProductModalLabel">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editProductCode" class="form-label">Código</label>
+                            <input type="text" class="form-control" id="editProductCode" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editProductCategory" class="form-label">Categoría</label>
+                            <select class="form-select" id="editProductCategory" required>
+                                <option value="">Seleccionar categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProductName" class="form-label">Nombre del producto</label>
+                        <input type="text" class="form-control" id="editProductName" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editProductPrice" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="editProductPrice" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editProductStock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="editProductStock" min="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProductDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="editProductDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProductImage" class="form-label">Imagen</label>
+                        <input type="file" class="form-control" id="editProductImage">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editProductActive" checked>
+                            <label class="form-check-label" for="editProductActive">
+                                Producto activo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para manejar la edición de productos
+        const editButtons = document.querySelectorAll('.btn-edit');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const productCode = row.cells[0].textContent;
+                const productName = row.cells[2].textContent;
+                const productCategory = row.cells[3].textContent;
+                const productPrice = row.cells[4].textContent.replace('$', '');
+                const productStock = row.cells[5].textContent;
+                const productDescription = row.cells[6].textContent;
+                const productActive = row.cells[7].querySelector('.badge').classList.contains('bg-success');
+
+                // Rellenar el formulario de edición con los datos del producto
+                document.getElementById('editProductCode').value = productCode;
+                document.getElementById('editProductName').value = productName;
+                document.getElementById('editProductCategory').value = productCategory;
+                document.getElementById('editProductPrice').value = productPrice;
+                document.getElementById('editProductStock').value = productStock;
+                document.getElementById('editProductDescription').value = productDescription;
+                document.getElementById('editProductActive').checked = productActive;
+            });
+        });
+
+        // Función para manejar la eliminación de productos
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const productCode = row.cells[0].textContent;
+                if (confirm(`¿Estás seguro de que deseas eliminar el producto con código ${productCode}?`)) {
+                    // Aquí iría la lógica para eliminar el producto
+                    console.log(`Producto con código ${productCode} eliminado`);
+                    // Efecto visual temporal (en producción se haría una petición AJAX)
+                    row.style.opacity = '0.5';
+                }
+            });
+        });
+
+        // Función para manejar la visualización de detalles de productos
+        const viewButtons = document.querySelectorAll('.btn-view');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const productCode = row.cells[0].textContent;
+                alert(`Ver detalles del producto con código ${productCode}`);
+                // Aquí puedes agregar lógica para mostrar detalles (modal, redirección, etc.)
+            });
+        });
+    });
+</script>
+{% endblock %}

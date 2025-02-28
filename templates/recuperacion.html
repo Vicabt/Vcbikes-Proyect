@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% set is_auth_page = true %}
+
+{% block title %}Recuperar Contraseña - VcBikes{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h2 class="text-center mb-4">Recuperar Contraseña</h2>
+        <form method="POST">
+            <div class="form-group mb-4">
+                <label class="form-label">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Enviar Instrucciones</button>
+            <div class="text-center">
+                <a href="{{ url_for('login') }}" class="text-decoration-none">Volver al inicio de sesión</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set is_auth_page = false %}
+
+{% block title %}Inicio - VcBikes{% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Bienvenido a VCbikes</h1>
+            <p>Creamos soluciones innovadoras para tu negocio de motocicletas.</p>
+        </div>
+    </section>
+
+    <!-- Servicios Section -->
+    <section class="services" id="servicios">
+        <h2>Nuestros Servicios</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <i class="fas fa-motorcycle"></i>
+                <h3>Venta de Motocicletas</h3>
+                <p>Ofrecemos una amplia gama de motocicletas de las mejores marcas.</p>
+            </div>
+            <div class="service-card">
+                <i class="fas fa-tools"></i>
+                <h3>Repuestos y Accesorios</h3>
+                <p>Encuentra todos los repuestos y accesorios que necesitas para tu moto.</p>
+            </div>
+            <div class="service-card">
+                <i class="fas fa-headset"></i>
+                <h3>Soporte y Asesoría</h3>
+                <p>Nuestro equipo está listo para ayudarte con cualquier consulta.</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

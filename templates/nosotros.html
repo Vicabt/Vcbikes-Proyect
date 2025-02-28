@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Nosotros - VcBikes{% endblock %}
+
+{% block body_class %}nosotros{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Fondo con imagen */
+body {
+    background: url("{{ url_for('static', filename='img/moto_index.webp') }}") no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* Capa oscura con desenfoque */
+.background-overlay {
+    background: rgba(0, 0, 0, 0.7); /* Oscurece la imagen */
+    backdrop-filter: blur(15px); /* Aplica desenfoque */
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1; /* Envía la capa al fondo */
+}
+
+/* Estilo de las tarjetas */
+.custom-card {
+    background: rgba(255, 255, 255, 0.2); /* Hace las tarjetas semitransparentes */
+    backdrop-filter: blur(5px); /* Difumina el fondo dentro de la tarjeta */
+    padding: 20px;
+    border-radius: 10px;
+    color: white; /* Texto blanco para contraste */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Seccion Nosotros -->
+<section class="nosotros container text-center py-5" id="nosotros">
+    <div class="container">
+        <h1 class="mb-4">Sobre Nosotros</h1>
+        <div class="row">
+            <!-- Nuestra Historia -->
+            <div class="col-md-12">
+                <div class="card shadow-lg rounded p-4 mb-4">
+                    <i class="fas fa-motorcycle fa-3x mb-3"></i>
+                    <h3>Nuestra Historia</h3>
+                    <p>Fundada en 2025, VcBikes nació con un propósito claro: transformar la experiencia de los motociclistas ofreciendo productos de alta calidad, un servicio excepcional y un compromiso inquebrantable con la satisfacción del cliente...</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Nuestra Misión -->
+            <div class="col-md-6">
+                <div class="card shadow-lg rounded p-4 mb-4">
+                    <h3>Nuestra Misión</h3>
+                    <p>En VcBikes, nos dedicamos a proporcionar a nuestros clientes motocicletas, repuestos y accesorios de la más alta calidad...</p>
+                </div>
+            </div>
+            <!-- Nuestra Visión -->
+            <div class="col-md-6">
+                <div class="card shadow-lg rounded p-4 mb-4">
+                    <h3>Nuestra Visión</h3>
+                    <p>Queremos ser líderes en el mercado de motocicletas y accesorios, expandiéndonos a nivel nacional e internacional...</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Únete a Nuestra Comunidad -->
+            <div class="col-md-12">
+                <div class="card shadow-lg rounded p-4">
+                    <h3>Únete a Nuestra Comunidad</h3>
+                    <p>En VcBikes, creemos que las motocicletas no son solo un medio de transporte, sino un estilo de vida...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

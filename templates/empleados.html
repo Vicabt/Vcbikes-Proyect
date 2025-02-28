@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}VcBikes - Gestión de Empleados{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title"><i class="fas fa-users me-2"></i>Gestión de Empleados</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+            <i class="fas fa-user-plus me-1"></i> Nuevo Empleado
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="positionFilter" class="form-label">Cargo</label>
+                    <select class="form-select" id="positionFilter">
+                        <option value="">Todos los cargos</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Mecánico">Mecánico</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Encargado de Inventario">Encargado de Inventario</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Estado</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="searchEmployee" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="searchEmployee" placeholder="Nombre, email, teléfono...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de empleados -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Cargo</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Fecha Contratación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empleado in empleados %}
+                    <tr>
+                        <td>{{ empleado.id }}</td>
+                        <td>{{ empleado.nombre }}</td>
+                        <td>{{ empleado.cargo }}</td>
+                        <td>{{ empleado.email }}</td>
+                        <td>{{ empleado.telefono }}</td>
+                        <td>{{ empleado.fecha_contratacion }}</td>
+                        <td><span class="badge bg-success">Activo</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('editar_empleado', empleado_id=empleado.id) }}" class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('eliminar_empleado', empleado_id=empleado.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este empleado?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewEmployeeModal" onclick="viewEmployee({{ empleado.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <nav aria-label="Paginación de empleados">
+            <ul class="pagination justify-content-center mt-4">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Siguiente</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar empleado -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Agregar Nuevo Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm" method="POST" action="{{ url_for('empleados') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre Completo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cargo" class="form-label">Cargo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                <select class="form-select" id="cargo" name="cargo" required>
+                                    <option value="">Seleccionar cargo</option>
+                                    <option value="Vendedor">Vendedor</option>
+                                    <option value="Mecánico">Mecánico</option>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Encargado de Inventario">Encargado de Inventario</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="employeeDocument" class="form-label">Documento de Identidad</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                <input type="text" class="form-control" id="employeeDocument" name="employeeDocument" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contratacion" class="form-label">Fecha de Contratación</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                <input type="date" class="form-control" id="contratacion" name="contratacion" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                            <input type="text" class="form-control" id="direccion" name="direccion">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="employeeActive" name="employeeActive" checked>
+                            <label class="form-check-label" for="employeeActive">
+                                Empleado activo
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Empleado</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles del empleado -->
+<div class="modal fade" id="viewEmployeeModal" tabindex="-1" aria-labelledby="viewEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewEmployeeModalLabel">Detalles del Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="employeeDetailsContent">
+                    <p><strong>Nombre:</strong> <span id="employeeNameDetail"></span></p>
+                    <p><strong>Cargo:</strong> <span id="employeePositionDetail"></span></p>
+                    <p><strong>Email:</strong> <span id="employeeEmailDetail"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="employeePhoneDetail"></span></p>
+                    <p><strong>Fecha de Contratación:</strong> <span id="employeeHireDateDetail"></span></p>
+                    <p><strong>Dirección:</strong> <span id="employeeAddressDetail"></span></p>
+                    <!-- Agrega más campos según sea necesario -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Convertir la lista de empleados de Python a JavaScript
+    const EMPLEADOS = {{ empleados|tojson|safe }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Empleados disponibles en JavaScript:', EMPLEADOS);
+
+        //Funcion para cargar datos del empleado
+        window.viewEmployee = function(id) {
+            console.log('viewEmployee llamada con ID:', id);
+            const empleado = EMPLEADOS.find(e => e.id === id);
+
+            if (empleado) {
+                console.log('Empleado encontrado:', empleado);
+                document.getElementById('employeeNameDetail').textContent = empleado.nombre;
+                document.getElementById('employeePositionDetail').textContent = empleado.cargo;
+                document.getElementById('employeeEmailDetail').textContent = empleado.email;
+                document.getElementById('employeePhoneDetail').textContent = empleado.telefono;
+                document.getElementById('employeeHireDateDetail').textContent = empleado.contratacion;
+                document.getElementById('employeeAddressDetail').textContent = empleado.direccion;
+
+                //Abrir el modal
+                const viewEmployeeModal = new bootstrap.Modal(document.getElementById('viewEmployeeModal'));
+                viewEmployeeModal.show();
+                console.log('Modal mostrado');
+
+            } else {
+                console.log('Empleado no encontrado');
+            }
+        };
+
+        // Limpiar el formulario al cerrar el modal de agregar empleado
+        document.getElementById('addEmployeeModal').addEventListener('hidden.bs.modal', function () {
+            // Limpia cualquier campo del formulario si es necesario
+            document.getElementById('employeeForm').reset();
+            // Resetea la imagen (si tienes un campo de imagen)
+        });
+
+        // Ajustar el margen superior del modal
+        const navbar = document.querySelector('.navbar');
+        const addEmployeeModal = document.getElementById('addEmployeeModal');
+
+        if (navbar && addEmployeeModal) {
+            const navbarHeight = navbar.offsetHeight;
+            addEmployeeModal.addEventListener('show.bs.modal', function() {
+                addEmployeeModal.style.marginTop = navbarHeight + 'px';
+            });
+            addEmployeeModal.addEventListener('hidden.bs.modal', function() {
+                addEmployeeModal.style.marginTop = ''; // Limpiar el estilo al cerrar
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedores - VcBikes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .providers-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .providers-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .provider-form {
+        background-color: var(--bs-body-bg);
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .providers-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .provider-item {
+        background-color: var(--bs-body-bg);
+        border-radius: 10px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid var(--bs-border-color);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .provider-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .provider-item h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--bs-body-color);
+    }
+    
+    .provider-item p {
+        color: var(--bs-secondary-color);
+        flex-grow: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .provider-contact {
+        margin-bottom: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--bs-border-color);
+    }
+    
+    .provider-contact p {
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .provider-contact i {
+        width: 20px;
+        margin-right: 8px;
+        color: var(--bs-primary);
+    }
+    
+    .provider-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-edit, .btn-delete, .btn-view {
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+    
+    .btn-view {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .btn-edit {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-view:hover {
+        background-color: #157347;
+    }
+    
+    .btn-edit:hover {
+        background-color: #0b5ed7;
+    }
+    
+    .btn-delete:hover {
+        background-color: #bb2d3b;
+    }
+    
+    @media (max-width: 768px) {
+        .providers-container {
+            padding: 1rem;
+        }
+        
+        .provider-form {
+            padding: 1.5rem;
+        }
+        
+        .providers-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="providers-container">
+    <div class="providers-header">
+        <h1>Gestión de Proveedores</h1>
+        <p>Administra los proveedores de productos para tu inventario</p>
+    </div>
+    
+    <div class="provider-form">
+        <h2>Agregar Nuevo Proveedor</h2>
+        <form method="POST" action="{{ url_for('proveedores') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="provider_name" class="form-label">Nombre del Proveedor</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <input type="text" class="form-control" id="provider_name" name="provider_name" required placeholder="Ej: Moto Importaciones S.A.">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="provider_contact" class="form-label">Persona de Contacto</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control" id="provider_contact" name="provider_contact" placeholder="Ej: Juan Pérez">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="provider_email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="provider_email" name="provider_email" placeholder="contacto@proveedor.com">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="provider_phone" class="form-label">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="tel" class="form-control" id="provider_phone" name="provider_phone" placeholder="+573001234567">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="provider_description" class="form-label">Descripción</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-align-left"></i>
+                    </span>
+                    <textarea class="form-control" id="provider_description" name="provider_description" rows="3" placeholder="Breve descripción del proveedor y los productos que ofrece"></textarea>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="provider_address" class="form-label">Dirección</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </span>
+                    <input type="text" class="form-control" id="provider_address" name="provider_address" placeholder="Dirección del proveedor">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>Agregar Proveedor
+            </button>
+        </form>
+    </div>
+    
+    <h2>Proveedores Existentes</h2>
+    <div class="providers-list">
+        <div class="provider-item">
+            <h2>Moto Importaciones S.A.</h2>
+            <p>Distribuidor oficial de motocicletas y repuestos para Colombia.</p>
+            <div class="provider-contact">
+                <p><i class="fas fa-user"></i> Carlos Rodríguez</p>
+                <p><i class="fas fa-envelope"></i> carlos@motoimportaciones.com</p>
+                <p><i class="fas fa-phone"></i> +573001234567</p>
+            </div>
+            <div class="provider-actions">
+                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
+        
+        <div class="provider-item">
+            <h2>Accesorios Moto Ltda.</h2>
+            <p>Importador mayorista de accesorios para motocicletas.</p>
+            <div class="provider-contact">
+                <p><i class="fas fa-user"></i> Ana Martínez</p>
+                <p><i class="fas fa-envelope"></i> ana@accesoriosmoto.com</p>
+                <p><i class="fas fa-phone"></i> +573109876543</p>
+            </div>
+            <div class="provider-actions">
+                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
+        
+        <div class="provider-item">
+            <h2>Repuestos Originales C.A.</h2>
+            <p>Proveedor de repuestos originales para todas las marcas.</p>
+            <div class="provider-contact">
+                <p><i class="fas fa-user"></i> Luis Gómez</p>
+                <p><i class="fas fa-envelope"></i> lgomez@repuestosoriginales.com</p>
+                <p><i class="fas fa-phone"></i> +573154567890</p>
+            </div>
+            <div class="provider-actions">
+                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Obtener el nombre del proveedor desde el título
+                const providerTitle = this.closest('.provider-item').querySelector('h2').textContent;
+                
+                if (confirm(`¿Estás seguro de que deseas eliminar al proveedor "${providerTitle}"?`)) {
+                    // Aquí iría la lógica para eliminar el proveedor
+                    console.log(`Proveedor "${providerTitle}" eliminado`);
+                    // Efecto visual temporal (en producción se haría una petición AJAX)
+                    this.closest('.provider-item').style.opacity = '0.5';
+                }
+            });
+        });
+        
+        const editButtons = document.querySelectorAll('.btn-edit');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Obtener los datos del proveedor
+                const providerItem = this.closest('.provider-item');
+                const providerTitle = providerItem.querySelector('h2').textContent;
+                const providerDescription = providerItem.querySelector('p').textContent;
+                
+                // Obtener los datos de contacto
+                const contactInfo = providerItem.querySelectorAll('.provider-contact p');
+                const contactName = contactInfo[0].textContent.replace(/.*\s/, '');
+                const contactEmail = contactInfo[1].textContent.replace(/.*\s/, '');
+                const contactPhone = contactInfo[2].textContent.replace(/.*\s/, '');
+                
+                // Rellenar el formulario con los datos del proveedor
+                document.getElementById('provider_name').value = providerTitle;
+                document.getElementById('provider_description').value = providerDescription;
+                document.getElementById('provider_contact').value = contactName;
+                document.getElementById('provider_email').value = contactEmail;
+                document.getElementById('provider_phone').value = contactPhone;
+                
+                // Hacer scroll hasta el formulario
+                document.querySelector('.provider-form').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        const viewButtons = document.querySelectorAll('.btn-view');
+        
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const providerTitle = this.closest('.provider-item').querySelector('h2').textContent;
+                
+                // Aquí iría la lógica para ver los detalles del proveedor
+                alert(`Ver detalles completos de "${providerTitle}"`);
+                // En producción, esto podría redirigir a una página de detalles
+                // window.location.href = `/proveedores/detalle/${providerID}`;
+            });
+        });
+    });
+</script>
+{% endblock %}

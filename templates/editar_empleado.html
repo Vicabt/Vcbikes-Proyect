@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Empleado - VcBikes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-lg rounded-3 border-0">
+        <div class="card-body p-4">
+            <h1 class="mb-4 text-center">Editar Empleado</h1>
+            <form method="POST" action="{{ url_for('editar_empleado', empleado_id=empleado.id) }}">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="nombre" name="nombre" value="{{ empleado.nombre }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label">Cargo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="cargo" name="cargo" value="{{ empleado.cargo }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ empleado.email }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" value="{{ empleado.telefono }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="direccion" name="direccion" value="{{ empleado.direccion }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="contratacion" class="form-label">Fecha de Contratación</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                <input type="date" class="form-control form-control-lg" id="contratacion" name="contratacion" value="{{ empleado.contratacion }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
+                    <a href="{{ url_for('empleados') }}" class="btn btn-secondary btn-lg">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
