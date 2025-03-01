@@ -1,25 +1,33 @@
 import os
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Crear la aplicación Flask
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'tu_clave_secreta_123'  # Cambiado por una clave más segura
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost/db_vcbikes'
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)  # Inicializa Flask-Migrate
 
-# Usuario de prueba (en producción usar base de datos)
-USERS = {
-    "admin": {
-        "password": "admin123",
-        "name": "Administrador"
-    }
-}
+# Modelo de Usuario
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)  # Guarda el hash de la contraseña
+    name = db.Column(db.String(100), nullable=True) # Agregamos el nombre
 
-# Simulación de base de datos en memoria (¡NO PARA PRODUCCIÓN!)
-CATEGORIES = []
-CATEGORY_ID_COUNTER = 1  # Para simular IDs autoincrementales
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
 
-EMPLEADOS = []
-EMPLEADO_ID_COUNTER = 1
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.email}')"
 
 # Decorator para requerir login
 def login_required(f):
@@ -51,15 +59,17 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
-        if username in USERS and USERS[username]["password"] == password:
-            session['user_id'] = username
-            session['user_name'] = USERS[username]["name"]
+
+        user = User.query.filter_by(username=username).first() # Busca el usuario por nombre de usuario
+
+        if user and user.check_password(password): # Verifica si el usuario existe y la contraseña es correcta
+            session['user_id'] = user.id  # Guarda el ID del usuario en la sesión
+            session['user_name'] = user.name # Guarda el nombre del usuario en la sesión
             flash('Has iniciado sesión exitosamente!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Usuario o contraseña incorrectos', 'error')
-    
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -70,6 +80,40 @@ def logout():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        name = request.form.get('nombre') # Obtiene el nombre del formulario
+        confirm_password = request.form.get('confirm_password')
+
+        print(f"Username recibido: {username}")
+
+        if password != confirm_password:
+            flash('Las contraseñas no coinciden.', 'error')
+            return render_template('registro.html')
+
+        # Verifica si el usuario o correo ya existen
+        user = User.query.filter_by(username=username).first()
+        email_check = User.query.filter_by(email=email).first()
+
+        if user:
+            flash('El nombre de usuario ya está registrado.', 'error')
+            return render_template('registro.html')
+
+        if email_check:
+            flash('El correo electrónico ya está registrado.', 'error')
+            return render_template('registro.html')
+
+        # Crea un nuevo usuario
+        new_user = User(username=username, email=email, name=name) # Usa el parametro nombre
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Te has registrado exitosamente! Ahora puedes iniciar sesión.', 'success')
+        return redirect(url_for('login'))
+
     return render_template('registro.html')
 
 @app.route('/recuperar-password', methods=['GET', 'POST'])
@@ -314,4 +358,6 @@ def nosotros():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+     with app.app_context():
+        db.create_all()  # Crea las tablas en la base de datos si no existen
+     app.run(debug=True)
