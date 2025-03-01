@@ -78,18 +78,19 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
+
     <!-- Contenido principal -->
     <main class="main-container">
     {% block content %}
     {% endblock %}
 
-    <!-- Botón Volver al Dashboard -->
-    {% if session['user_id'] %}
-        <div class="container mt-3">  <!-- Agrega el container con margen superior -->
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver </a>
-        </div> <!-- Cierra el container -->
+    <!-- Botón Volver al Dashboard (ahora dinámico) -->
+    {% if session['user_id'] and show_back_button %}
+        <div class="container mt-3">
+            <button id="backButton" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
     {% endif %}
     </main>
 
@@ -242,6 +243,34 @@
             closeMenu();
         });
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            // Intenta obtener la URL de la sesión de Flask
+            fetch('/get_previous_page')
+                .then(response => response.json())
+                .then(data => {
+                    const previousPage = data.previous_page;
+                    if (previousPage) {
+                        // Redirige a la página anterior obtenida de la sesión de Flask
+                        window.location.href = previousPage;
+                    } else {
+                        // Si no hay página anterior en la sesión, redirige al dashboard
+                        window.location.href = '{{ url_for("dashboard") }}';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener la página anterior:', error);
+                    // En caso de error, redirige al dashboard como fallback
+                    window.location.href = '{{ url_for("dashboard") }}';
+                });
+        });
+    }
+});
+</script>
     
     {% block extra_js %}{% endblock %}
 </body>

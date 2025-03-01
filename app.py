@@ -1,6 +1,6 @@
 import os
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +12,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localh
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # Inicializa Flask-Migrate
 
+# Inicializar listas y contadores
+CATEGORIAS = []
+CATEGORY_ID_COUNTER = 1
+EMPLEADOS = []
+EMPLEADO_ID_COUNTER = 1
 # Modelo de Usuario
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,7 +47,8 @@ def login_required(f):
 # Rutas
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', show_back_button=False) # No mostramos boton de regreso
+
 
 @app.route('/contacto', methods=['GET', 'POST'])
 def contacto():
@@ -52,7 +58,8 @@ def contacto():
         mensaje = request.form.get('mensaje')
         flash('Mensaje enviado con éxito. Nos pondremos en contacto contigo pronto.')
         return redirect(url_for('contacto'))
-    return render_template('contacto.html')
+    return render_template('contacto.html', show_back_button=False) # No mostramos boton de regreso
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -123,7 +130,8 @@ def recuperar_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', show_back_button=False) # No mostramos boton de regreso
+
 
 @app.route('/categorias', methods=['GET', 'POST'])
 @login_required
@@ -149,7 +157,8 @@ def categorias():
         flash('Categoría agregada con éxito!', 'success')
         return redirect(url_for('categorias'))
 
-    return render_template('categorias.html', categories=CATEGORIES)  # Pasar las categorías a la plantilla
+    return render_template('categorias.html', show_back_button=True) # Mostramos el boton de regreso
+
 
 @app.route('/categorias/editar/<int:category_id>', methods=['GET', 'POST'])
 @login_required
@@ -174,7 +183,7 @@ def editar_categoria(category_id):
         flash('Categoría actualizada con éxito!', 'success')
         return redirect(url_for('categorias'))
 
-    return render_template('editar_categoria.html', category=category)
+    return render_template('editar_categoria.html', category=category, show_back_button=True)
 
 @app.route('/categorias/eliminar/<int:category_id>', methods=['POST'])
 @login_required
@@ -187,7 +196,8 @@ def eliminar_categoria(category_id):
 @app.route('/subcategorias', methods=['GET', 'POST'])
 @login_required
 def subcategorias():
-    return render_template('subcategorias.html')
+    return render_template('subcategorias.html', show_back_button=True) # Mostramos el boton de regreso
+
 
 @app.route('/configuracion_usuario')
 @login_required
@@ -227,7 +237,8 @@ def empleados():
         flash('Empleado agregado con éxito!', 'success')
         return redirect(url_for('empleados'))
 
-    return render_template('empleados.html', empleados=EMPLEADOS)
+    return render_template('empleados.html', empleados=EMPLEADOS, show_back_button=True) # Mostramos el boton de regreso
+
 
 
 @app.route('/empleados/editar/<int:empleado_id>', methods=['GET', 'POST'])
@@ -262,7 +273,7 @@ def editar_empleado(empleado_id):
         flash('Empleado actualizado con éxito!', 'success')
         return redirect(url_for('empleados'))
 
-    return render_template('editar_empleado.html', empleado=empleado)
+    return render_template('editar_empleado.html', empleado=empleado, show_back_button=True)
 
 
 @app.route('/empleados/eliminar/<int:empleado_id>', methods=['POST'])
@@ -276,7 +287,8 @@ def eliminar_empleado(empleado_id):
 @app.route('/clientes')
 @login_required
 def clientes():
-    return render_template('clientes.html')
+    return render_template('clientes.html', show_back_button=True) # Mostramos el boton de regreso
+
 
 # Datos del usuario (simulación - ¡NO USAR EN PRODUCCIÓN!)
 USUARIO_NOMBRE = "Víctor"
@@ -335,26 +347,31 @@ def perfil():
                            ciudad=USUARIO_CIUDAD,
                            estado=USUARIO_ESTADO,
                            codigo_postal=USUARIO_CODIGO_POSTAL,
-                           biografia=USUARIO_BIOGRAFIA)
+                           biografia=USUARIO_BIOGRAFIA, show_back_button=True)
 
 @app.route('/ventas')
 @login_required
 def ventas():
-    return render_template('ventas.html')
+    return render_template('ventas.html', show_back_button=True)
 
 @app.route('/productos')
 @login_required
 def productos():
-    return render_template('productos.html')
+    return render_template('productos.html', show_back_button=True)
 
 @app.route('/proveedores', methods=['GET', 'POST'])
 @login_required
 def proveedores():
-    return render_template('proveedores.html')
+    return render_template('proveedores.html', show_back_button=True)
 
 @app.route('/nosotros')
 def nosotros():
-    return render_template('nosotros.html')
+    return render_template('nosotros.html', show_back_button=False) # No mostramos boton de regreso
+
+@app.route('/get_previous_page')
+def get_previous_page():
+    # Devuelve la URL de la página anterior desde la sesión de Flask
+    return jsonify({'previous_page': session.get('previous_page')})
 
 
 if __name__ == '__main__':
