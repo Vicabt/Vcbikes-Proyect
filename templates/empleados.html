@@ -230,56 +230,55 @@
 
 {% block extra_js %}
 <script>
-    // Convertir la lista de empleados de Python a JavaScript
-    const EMPLEADOS = {{ empleados|tojson|safe }};
 
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Empleados disponibles en JavaScript:', EMPLEADOS);
-
-        //Funcion para cargar datos del empleado
-        window.viewEmployee = function(id) {
-            console.log('viewEmployee llamada con ID:', id);
-            const empleado = EMPLEADOS.find(e => e.id === id);
-
-            if (empleado) {
-                console.log('Empleado encontrado:', empleado);
-                document.getElementById('employeeNameDetail').textContent = empleado.nombre;
-                document.getElementById('employeePositionDetail').textContent = empleado.cargo;
-                document.getElementById('employeeEmailDetail').textContent = empleado.email;
-                document.getElementById('employeePhoneDetail').textContent = empleado.telefono;
-                document.getElementById('employeeHireDateDetail').textContent = empleado.contratacion;
-                document.getElementById('employeeAddressDetail').textContent = empleado.direccion;
-
-                //Abrir el modal
-                const viewEmployeeModal = new bootstrap.Modal(document.getElementById('viewEmployeeModal'));
-                viewEmployeeModal.show();
-                console.log('Modal mostrado');
-
-            } else {
-                console.log('Empleado no encontrado');
-            }
-        };
-
-        // Limpiar el formulario al cerrar el modal de agregar empleado
-        document.getElementById('addEmployeeModal').addEventListener('hidden.bs.modal', function () {
-            // Limpia cualquier campo del formulario si es necesario
-            document.getElementById('employeeForm').reset();
-            // Resetea la imagen (si tienes un campo de imagen)
-        });
-
-        // Ajustar el margen superior del modal
-        const navbar = document.querySelector('.navbar');
-        const addEmployeeModal = document.getElementById('addEmployeeModal');
-
-        if (navbar && addEmployeeModal) {
-            const navbarHeight = navbar.offsetHeight;
-            addEmployeeModal.addEventListener('show.bs.modal', function() {
-                addEmployeeModal.style.marginTop = navbarHeight + 'px';
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar el modal una sola vez al cargar la página
+    const viewEmployeeModal = new bootstrap.Modal(document.getElementById('viewEmployeeModal'));
+    
+    // Definir la función de ver empleado en el objeto window
+    window.viewEmployee = function(id) {
+        fetch(`/get_employee_details/${id}`)
+            .then(response => response.json())
+            .then(empleado => {
+                if (empleado) {
+                    document.getElementById('employeeNameDetail').textContent = empleado.nombre;
+                    document.getElementById('employeePositionDetail').textContent = empleado.cargo;
+                    document.getElementById('employeeEmailDetail').textContent = empleado.email;
+                    document.getElementById('employeePhoneDetail').textContent = empleado.telefono;
+                    document.getElementById('employeeHireDateDetail').textContent = empleado.fecha_contratacion;
+                    document.getElementById('employeeAddressDetail').textContent = empleado.direccion;
+                    
+                    // Usar la instancia existente en lugar de crear una nueva
+                    viewEmployeeModal.show();
+                } else {
+                    console.log('Empleado no encontrado');
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener los detalles del empleado:', error);
+                alert('Hubo un error al cargar los detalles del empleado. Por favor, inténtelo de nuevo.');
             });
-            addEmployeeModal.addEventListener('hidden.bs.modal', function() {
-                addEmployeeModal.style.marginTop = ''; // Limpiar el estilo al cerrar
-            });
-        }
+    };
+
+    // El resto del código existente...
+    // Limpiar el formulario al cerrar el modal de agregar empleado
+    document.getElementById('addEmployeeModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('employeeForm').reset();
     });
+
+    // Ajustar el margen superior del modal
+    const navbar = document.querySelector('.navbar');
+    const addEmployeeModal = document.getElementById('addEmployeeModal');
+
+    if (navbar && addEmployeeModal) {
+        const navbarHeight = navbar.offsetHeight;
+        addEmployeeModal.addEventListener('show.bs.modal', function() {
+            addEmployeeModal.style.marginTop = navbarHeight + 'px';
+        });
+        addEmployeeModal.addEventListener('hidden.bs.modal', function() {
+            addEmployeeModal.style.marginTop = '';
+        });
+    }
+});
 </script>
 {% endblock %}

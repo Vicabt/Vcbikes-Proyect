@@ -1,38 +1,58 @@
 import os
 from functools import wraps
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
 
+# Load environment variables from .env file
+load_dotenv()
+from datetime import datetime
+from models import db, User, Empleado, Categoria, Cliente, Subcategoria, Producto, Proveedor
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+import logging
+from forms import ProductoForm
 # Crear la aplicación Flask
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'tu_clave_secreta_123'  # Cambiado por una clave más segura
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost/db_vcbikes'
-db = SQLAlchemy(app)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_key_for_development')  # Use environment variable
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Configuración para subida de imágenes
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Build database URI from environment variables
+db_username = os.environ.get('DB_USERNAME', 'root')
+db_password = os.environ.get('DB_PASSWORD', 'root')
+db_host = os.environ.get('DB_HOST', 'localhost')
+db_name = os.environ.get('DB_NAME', 'db_vcbikes')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+mysqlconnector://{db_username}:{db_password}@{db_host}/{db_name}'
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+db.init_app(app)
 migrate = Migrate(app, db)  # Inicializa Flask-Migrate
 
-# Inicializar listas y contadores
-CATEGORIAS = []
-CATEGORY_ID_COUNTER = 1
-EMPLEADOS = []
-EMPLEADO_ID_COUNTER = 1
-# Modelo de Usuario
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)  # Guarda el hash de la contraseña
-    name = db.Column(db.String(100), nullable=True) # Agregamos el nombre
+# Configuración de la aplicación para guardar imagenes de los productos
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}')"
+# Función para inicializar datos
+def initialize_data():
+    # Verificar si ya hay datos
+    if Categoria.query.count() == 0:
+        # Crear categorías de ejemplo
+        cat1 = Categoria(nombre="Motocicletas", descripcion="Vehículos de dos ruedas")
+        cat2 = Categoria(nombre="Repuestos", descripcion="Piezas y componentes")
+        cat3 = Categoria(nombre="Accesorios", descripcion="Complementos para motos y motociclistas")
+        
+        db.session.add_all([cat1, cat2, cat3])
+        db.session.commit()
 
 # Decorator para requerir login
 def login_required(f):
@@ -40,7 +60,9 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Por favor inicia sesión para acceder.', 'error')
-            return redirect(url_for('login'))
+            logging.warning('Acceso denegado a la ruta protegida. Redirigiendo al login.')  # Log de acceso denegado
+            return redirect(url_for('login'))  # Redirige al login si no está autenticado
+        logging.info('Acceso permitido a la ruta protegida.')  # Log de acceso permitido
         return f(*args, **kwargs)
     return decorated_function
 
@@ -67,15 +89,19 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = User.query.filter_by(username=username).first() # Busca el usuario por nombre de usuario
+        user = User.query.filter_by(username=username).first()  # Busca el usuario por nombre de usuario
 
-        if user and user.check_password(password): # Verifica si el usuario existe y la contraseña es correcta
+        logging.debug(f'Intento de inicio de sesión para el usuario: {username}')  # Log de intento de inicio de sesión
+
+        if user and user.check_password(password):  # Verifica si el usuario existe y la contraseña es correcta
             session['user_id'] = user.id  # Guarda el ID del usuario en la sesión
-            session['user_name'] = user.name # Guarda el nombre del usuario en la sesión
+            session['user_name'] = user.name  # Guarda el nombre del usuario en la sesión
             flash('Has iniciado sesión exitosamente!', 'success')
-            return redirect(url_for('dashboard'))
+            logging.info(f'Usuario {username} ha iniciado sesión exitosamente.')  # Log de éxito
+            return redirect(url_for('dashboard'))  # Redirige al dashboard
         else:
             flash('Usuario o contraseña incorrectos', 'error')
+            logging.warning(f'Fallo en el inicio de sesión para el usuario: {username}')  # Log de fallo
 
     return render_template('login.html')
 
@@ -136,232 +162,482 @@ def dashboard():
 @app.route('/categorias', methods=['GET', 'POST'])
 @login_required
 def categorias():
-    global CATEGORY_ID_COUNTER  # Necesario para modificar la variable global
+    session['previous_page'] = url_for('dashboard')
     if request.method == 'POST':
-        category_name = request.form.get('category_name')
-        category_description = request.form.get('category_description')
+        nombre = request.form.get('category_name')
+        descripcion = request.form.get('category_description')
 
-        # Validación básica (¡NECESITAS MÁS VALIDACIÓN EN PRODUCCIÓN!)
-        if not category_name:
+        # Validación básica
+        if not nombre:
             flash('El nombre de la categoría es obligatorio.', 'error')
             return redirect(url_for('categorias'))
 
-        # Crear la nueva categoría (simulando un objeto de base de datos)
-        new_category = {
-            'id': CATEGORY_ID_COUNTER,
-            'name': category_name,
-            'description': category_description
-        }
-        CATEGORY_ID_COUNTER += 1
-        CATEGORIES.append(new_category)
-        flash('Categoría agregada con éxito!', 'success')
+        try:
+            # Crear nueva categoría
+            nueva_categoria = Categoria(
+                nombre=nombre,
+                descripcion=descripcion
+            )
+            db.session.add(nueva_categoria)
+            db.session.commit()
+            flash('Categoría agregada con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al agregar la categoría: {str(e)}', 'error')
+
         return redirect(url_for('categorias'))
 
-    return render_template('categorias.html', show_back_button=True) # Mostramos el boton de regreso
-
+    # Obtener todas las categorías de la base de datos
+    categorias = Categoria.query.all()
+    return render_template('categorias.html', categories=categorias, show_back_button=True)
 
 @app.route('/categorias/editar/<int:category_id>', methods=['GET', 'POST'])
 @login_required
 def editar_categoria(category_id):
-    category = next((c for c in CATEGORIES if c['id'] == category_id), None)
-    if not category:
-        flash('Categoría no encontrada.', 'error')
-        return redirect(url_for('categorias'))
+    categoria = Categoria.query.get_or_404(category_id)
 
     if request.method == 'POST':
-        category_name = request.form.get('category_name')
-        category_description = request.form.get('category_description')
+        categoria.nombre = request.form.get('category_name')
+        categoria.descripcion = request.form.get('category_description')
 
-        # Validación básica (¡NECESITAS MÁS VALIDACIÓN EN PRODUCCIÓN!)
-        if not category_name:
+        # Validación básica
+        if not categoria.nombre:
             flash('El nombre de la categoría es obligatorio.', 'error')
             return redirect(url_for('editar_categoria', category_id=category_id))
 
-        # Actualizar la categoría
-        category['name'] = category_name
-        category['description'] = category_description
-        flash('Categoría actualizada con éxito!', 'success')
+        try:
+            db.session.commit()
+            flash('Categoría actualizada con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar la categoría: {str(e)}', 'error')
+
         return redirect(url_for('categorias'))
 
-    return render_template('editar_categoria.html', category=category, show_back_button=True)
+    return render_template('editar_categoria.html', category=categoria, show_back_button=True)
 
 @app.route('/categorias/eliminar/<int:category_id>', methods=['POST'])
 @login_required
 def eliminar_categoria(category_id):
-    global CATEGORIES
-    CATEGORIES = [c for c in CATEGORIES if c['id'] != category_id]
-    flash('Categoría eliminada con éxito!', 'success')
+    categoria = Categoria.query.get_or_404(category_id)
+    try:
+        db.session.delete(categoria)
+        db.session.commit()
+        flash('Categoría eliminada con éxito!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la categoría: {str(e)}', 'error')
+
     return redirect(url_for('categorias'))
 
 @app.route('/subcategorias', methods=['GET', 'POST'])
 @login_required
 def subcategorias():
+    session['previous_page'] = url_for('dashboard')
     return render_template('subcategorias.html', show_back_button=True) # Mostramos el boton de regreso
 
+@app.route('/get_subcategorias/<int:categoria_id>')
+@login_required
+def get_subcategorias(categoria_id):
+    subcategorias = Subcategoria.query.filter_by(categoria_id=categoria_id).all()
+    subcategorias_dict = [{'id': sub.id, 'nombre': sub.nombre} for sub in subcategorias]
+    return jsonify(subcategorias_dict)
 
 @app.route('/configuracion_usuario')
 @login_required
 def configuracion_usuario():
     return render_template('configuracion_usuario.html')
 
+from datetime import datetime
+
 @app.route('/empleados', methods=['GET', 'POST'])
 @login_required
 def empleados():
-    global EMPLEADO_ID_COUNTER
+    session['previous_page'] = url_for('dashboard')
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         cargo = request.form.get('cargo')
         email = request.form.get('email')
         telefono = request.form.get('telefono')
+        documento_identidad = request.form.get('employeeDocument')
         direccion = request.form.get('direccion')
-        fecha_contratacion = request.form.get('contratacion')
-        # ... (obtener los demás campos del formulario) ...
+        fecha_contratacion_str = request.form.get('contratacion')
+        activo = request.form.get('employeeActive') == 'on'  # Verifica si el checkbox está marcado
 
         # Validación (¡MUY IMPORTANTE!)
         if not nombre or not cargo or not email:
             flash('Todos los campos son obligatorios.', 'error')
             return redirect(url_for('empleados'))
 
-        nuevo_empleado = {
-            'id': EMPLEADO_ID_COUNTER,
-            'nombre': nombre,
-            'cargo': cargo,
-            'email': email,
-            'telefono': telefono,
-            'direccion': direccion,
-            'fecha_contratacion': fecha_contratacion,
-            # ... (asignar los demás campos) ...
-        }
-        EMPLEADOS.append(nuevo_empleado)
-        EMPLEADO_ID_COUNTER += 1
-        flash('Empleado agregado con éxito!', 'success')
+        try:
+            # Convierte la fecha de contratación a un objeto datetime.date
+            fecha_contratacion = datetime.strptime(fecha_contratacion_str, '%Y-%m-%d').date()
+
+            nuevo_empleado = Empleado(
+                nombre=nombre,
+                cargo=cargo,
+                email=email,
+                telefono=telefono,
+                documento_identidad=documento_identidad,
+                direccion=direccion,
+                fecha_contratacion=fecha_contratacion,
+                activo=activo
+            )
+            db.session.add(nuevo_empleado)
+            db.session.commit()
+            flash('Empleado agregado con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al agregar el empleado: {str(e)}', 'error')
+
         return redirect(url_for('empleados'))
 
-    return render_template('empleados.html', empleados=EMPLEADOS, show_back_button=True) # Mostramos el boton de regreso
-
-
+    # Obtener todos los empleados de la base de datos
+    empleados = Empleado.query.all()
+    return render_template('empleados.html', empleados=empleados, show_back_button=True)
 
 @app.route('/empleados/editar/<int:empleado_id>', methods=['GET', 'POST'])
 @login_required
 def editar_empleado(empleado_id):
-    empleado = next((e for e in EMPLEADOS if e['id'] == empleado_id), None)
-    if not empleado:
-        flash('Empleado no encontrado.', 'error')
-        return redirect(url_for('empleados'))
+    empleado = Empleado.query.get_or_404(empleado_id)
 
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        cargo = request.form.get('cargo')
-        email = request.form.get('email')
-        telefono = request.form.get('telefono')
-        direccion = request.form.get('direccion')
-        fecha_contratacion = request.form.get('contratacion')
-        # ... (obtener los demás campos del formulario) ...
+        empleado.nombre = request.form.get('nombre')
+        empleado.cargo = request.form.get('cargo')
+        empleado.email = request.form.get('email')
+        empleado.telefono = request.form.get('telefono')
+        empleado.documento_identidad = request.form.get('employeeDocument')
+        empleado.direccion = request.form.get('direccion')
+        fecha_contratacion_str = request.form.get('contratacion')
+        empleado.activo = request.form.get('employeeActive') == 'on'
 
         # Validación (¡MUY IMPORTANTE!)
-        if not nombre or not cargo or not email:
+        if not empleado.nombre or not empleado.cargo or not empleado.email:
             flash('Todos los campos son obligatorios.', 'error')
             return redirect(url_for('editar_empleado', empleado_id=empleado_id))
 
-        empleado['nombre'] = nombre
-        empleado['cargo'] = cargo
-        empleado['email'] = email
-        empleado['telefono'] = telefono
-        empleado['direccion'] = direccion
-        empleado['contratacion'] = fecha_contratacion
-        # ... (actualizar los demás campos) ...
-        flash('Empleado actualizado con éxito!', 'success')
+        try:
+            # Convierte la fecha de contratación a un objeto datetime.date
+            empleado.fecha_contratacion = datetime.strptime(fecha_contratacion_str, '%Y-%m-%d').date()
+
+            db.session.commit()
+            flash('Empleado actualizado con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar el empleado: {str(e)}', 'error')
+
         return redirect(url_for('empleados'))
 
     return render_template('editar_empleado.html', empleado=empleado, show_back_button=True)
 
-
 @app.route('/empleados/eliminar/<int:empleado_id>', methods=['POST'])
 @login_required
 def eliminar_empleado(empleado_id):
-    global EMPLEADOS
-    EMPLEADOS = [e for e in EMPLEADOS if e['id'] != empleado_id]
-    flash('Empleado eliminado con éxito!', 'success')
+    empleado = Empleado.query.get_or_404(empleado_id)
+    try:
+        db.session.delete(empleado)
+        db.session.commit()
+        flash('Empleado eliminado con éxito!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el empleado: {str(e)}', 'error')
+
     return redirect(url_for('empleados'))
 
-@app.route('/clientes')
+from flask import jsonify
+
+@app.route('/get_employee_details/<int:empleado_id>')
+@login_required
+def get_employee_details(empleado_id):
+    empleado = Empleado.query.get_or_404(empleado_id)
+    # Convierte la fecha a string
+    fecha_str = empleado.fecha_contratacion.strftime('%Y-%m-%d') if empleado.fecha_contratacion else None
+    # Serializa el objeto Empleado a un diccionario
+    empleado_dict = {
+        'id': empleado.id,
+        'nombre': empleado.nombre,
+        'cargo': empleado.cargo,
+        'email': empleado.email,
+        'telefono': empleado.telefono,
+        'documento_identidad': empleado.documento_identidad,
+        'direccion': empleado.direccion,
+        'fecha_contratacion': fecha_str, # Usa la fecha convertida a string
+        'activo': empleado.activo
+    }
+    return jsonify(empleado_dict)
+
+# En app.py
+@app.route('/clientes', methods=['GET', 'POST'])
 @login_required
 def clientes():
-    return render_template('clientes.html', show_back_button=True) # Mostramos el boton de regreso
-
-
-# Datos del usuario (simulación - ¡NO USAR EN PRODUCCIÓN!)
-USUARIO_NOMBRE = "Víctor"
-USUARIO_APELLIDO = "Cabas"
-USUARIO_EMAIL = "victor@vcbikes.com"
-USUARIO_TELEFONO = "+57 300 123 4567"
-USUARIO_DIRECCION = "Calle 123 #45-67"
-USUARIO_CIUDAD = "Bogotá"
-USUARIO_ESTADO = "Cundinamarca"
-USUARIO_CODIGO_POSTAL = "110111"
-USUARIO_BIOGRAFIA = "Administrador del sistema de inventario VcBikes."
-
-@app.route('/perfil', methods=['GET', 'POST'])
-@login_required
-def perfil():
-    global USUARIO_NOMBRE, USUARIO_APELLIDO, USUARIO_EMAIL, USUARIO_TELEFONO, USUARIO_DIRECCION, USUARIO_CIUDAD, USUARIO_ESTADO, USUARIO_CODIGO_POSTAL, USUARIO_BIOGRAFIA
-
+    session['previous_page'] = url_for('dashboard')
     if request.method == 'POST':
-        # Obtener datos del formulario
         nombre = request.form.get('nombre')
         apellido = request.form.get('apellido')
         email = request.form.get('email')
         telefono = request.form.get('telefono')
         direccion = request.form.get('direccion')
-        ciudad = request.form.get('ciudad')
-        estado = request.form.get('estado')
-        codigo_postal = request.form.get('codigo_postal')
-        biografia = request.form.get('biografia')
+        documento_identidad = request.form.get('documento_identidad')
 
-        # Validar los datos (¡IMPORTANTE en una aplicación real!)
-        if not nombre or not apellido or not email:
-            flash('Nombre, apellido y correo electrónico son obligatorios.', 'error')
-            return redirect(url_for('perfil'))
+        # Validación básica
+        if not nombre:
+            flash('El nombre del cliente es obligatorio.', 'error')
+            return redirect(url_for('clientes'))
 
-        # Actualizar los datos (simulación - ¡NO USAR EN PRODUCCIÓN!)
-        USUARIO_NOMBRE = nombre
-        USUARIO_APELLIDO = apellido
-        USUARIO_EMAIL = email
-        USUARIO_TELEFONO = telefono
-        USUARIO_DIRECCION = direccion
-        USUARIO_CIUDAD = ciudad
-        USUARIO_ESTADO = estado
-        USUARIO_CODIGO_POSTAL = codigo_postal
-        USUARIO_BIOGRAFIA = biografia
+        try:
+            nuevo_cliente = Cliente(
+                nombre=nombre,
+                apellido=apellido,
+                email=email,
+                telefono=telefono,
+                direccion=direccion,
+                documento_identidad=documento_identidad
+            )
+            db.session.add(nuevo_cliente)
+            db.session.commit()
+            flash('Cliente agregado con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al agregar el cliente: {str(e)}', 'error')
 
+        return redirect(url_for('clientes'))
+
+    # Obtener todos los clientes de la base de datos
+    clientes = Cliente.query.all()
+    return render_template('clientes.html', clientes=clientes, show_back_button=True)
+
+@app.route('/clientes/editar/<int:cliente_id>', methods=['GET', 'POST'])
+@login_required
+def editar_cliente(cliente_id):
+    cliente = Cliente.query.get_or_404(cliente_id)
+
+    if request.method == 'POST':
+        cliente.nombre = request.form.get('nombre')
+        cliente.apellido = request.form.get('apellido')
+        cliente.email = request.form.get('email')
+        cliente.telefono = request.form.get('telefono')
+        cliente.direccion = request.form.get('direccion')
+        cliente.documento_identidad = request.form.get('documento_identidad')
+
+        # Validación básica
+        if not cliente.nombre:
+            flash('El nombre del cliente es obligatorio.', 'error')
+            return redirect(url_for('editar_cliente', cliente_id=cliente_id))
+
+        try:
+            db.session.commit()
+            flash('Cliente actualizado con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar el cliente: {str(e)}', 'error')
+
+        return redirect(url_for('clientes'))
+
+    return render_template('editar_cliente.html', cliente=cliente, show_back_button=True)
+
+@app.route('/clientes/eliminar/<int:cliente_id>', methods=['POST'])
+@login_required
+def eliminar_cliente(cliente_id):
+    cliente = Cliente.query.get_or_404(cliente_id)
+    try:
+        db.session.delete(cliente)
+        db.session.commit()
+        flash('Cliente eliminado con éxito!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el cliente: {str(e)}', 'error')
+
+    return redirect(url_for('clientes'))
+
+@app.route('/get_cliente_details/<int:cliente_id>')
+@login_required
+def get_cliente_details(cliente_id):
+    cliente = Cliente.query.get_or_404(cliente_id)
+    cliente_dict = {
+        'id': cliente.id,
+        'nombre': cliente.nombre,
+        'apellido': cliente.apellido,
+        'email': cliente.email,
+        'telefono': cliente.telefono,
+        'direccion': cliente.direccion,
+        'documento_identidad': cliente.documento_identidad
+    }
+    return jsonify(cliente_dict)
+
+@app.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    session['previous_page'] = url_for('dashboard')
+
+    # Obtener el usuario actual
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('Debes iniciar sesión para acceder a esta página', 'error')
+        return redirect(url_for('login'))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash('Usuario no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        # Actualizar datos desde el formulario
+        user.name = request.form.get('nombre', '')
+        user.email = request.form.get('email', '')
+        user.telefono = request.form.get('telefono', '')  # Actualizar el teléfono
+        db.session.commit()
         flash('Perfil actualizado con éxito!', 'success')
         return redirect(url_for('perfil'))
 
-    # Pasar los datos a la plantilla
+    # Pasar los datos del usuario a la plantilla
     return render_template('perfil.html',
-                           nombre=USUARIO_NOMBRE,
-                           apellido=USUARIO_APELLIDO,
-                           email=USUARIO_EMAIL,
-                           telefono=USUARIO_TELEFONO,
-                           direccion=USUARIO_DIRECCION,
-                           ciudad=USUARIO_CIUDAD,
-                           estado=USUARIO_ESTADO,
-                           codigo_postal=USUARIO_CODIGO_POSTAL,
-                           biografia=USUARIO_BIOGRAFIA, show_back_button=True)
+                          nombre=user.name,
+                          email=user.email,
+                          telefono=user.telefono,  # Pasar el teléfono desde el modelo
+                          direccion="",  # Este campo no existe en el modelo actual
+                          biografia="",
+                          show_back_button=True)
 
 @app.route('/ventas')
 @login_required
 def ventas():
+    session['previous_page'] = url_for('dashboard')
     return render_template('ventas.html', show_back_button=True)
 
 @app.route('/productos')
 @login_required
 def productos():
+    session['previous_page'] = url_for('dashboard')
+    productos = Producto.query.all()
+    categorias = Categoria.query.all()
+    subcategorias = Subcategoria.query.all()
+    proveedores = Proveedor.query.all()
+    form = ProductoForm()  # Create form instance for CSRF token
+    return render_template('productos.html', 
+                    productos=productos,
+                    categorias=categorias,
+                    subcategorias=subcategorias,
+                    proveedores=proveedores,
+                    form=form,
+                    show_back_button=True)
+
+@app.route('/productos/nuevo', methods=['GET', 'POST'])
+@login_required
+def nuevo_producto():
+    if request.method == 'POST':
+        # Captura de datos
+        codigo = request.form.get('codigo')
+        nombre = request.form.get('nombre')
+        precio = request.form.get('precio')
+        stock = request.form.get('stock')
+        descripcion = request.form.get('descripcion')
+        categoria_id = request.form.get('categoria_id')
+        subcategoria_id = request.form.get('subcategoria_id')
+        proveedor_id = request.form.get('proveedor_id')
+        imagen = request.files.get('imagen')
+
+        # Convert empty strings to None for integer fields
+        if categoria_id == '':
+            categoria_id = None
+        if subcategoria_id == '':
+            subcategoria_id = None
+        if proveedor_id == '':
+            proveedor_id = None
+        if stock == '':
+            stock = 0
+            
+        # Validaciones
+        if not codigo or not nombre:
+            flash('El código y el nombre son obligatorios', 'error')
+            return redirect(url_for('productos'))
+
+        # Guardar en la base de datos
+        nuevo_producto = Producto(
+            codigo=codigo,
+            nombre=nombre,
+            precio=precio,
+            stock=stock,
+            descripcion=descripcion,
+            categoria_id=categoria_id,
+            subcategoria_id=subcategoria_id,
+            proveedor_id=proveedor_id,
+            imagen=imagen.filename if imagen else None
+        )
+        db.session.add(nuevo_producto)
+        db.session.commit()
+        flash('Producto agregado exitosamente', 'success')
+        return redirect(url_for('productos'))
+
+    # GET request - mostrar formulario
     return render_template('productos.html', show_back_button=True)
+
+@app.route('/productos/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        producto.nombre = request.form['nombre']
+        producto.descripcion = request.form['descripcion']
+        producto.precio = float(request.form['precio'])
+        producto.stock = int(request.form['stock'])
+        producto.codigo = request.form['codigo']
+        producto.categoria_id = request.form['categoria_id'] if request.form['categoria_id'] != '' else None
+
+        if 'subcategoria_id' in request.form:
+            producto.subcategoria_id = request.form['subcategoria_id'] if request.form['subcategoria_id'] != '' else None
+        if 'proveedor_id' in request.form:
+            producto.proveedor_id = request.form['proveedor_id'] if request.form['proveedor_id'] != '' else None
+        
+        # Manejo de la imagen
+        if 'imagen' in request.files:
+            file = request.files['imagen']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                producto.imagen = f'uploads/{filename}'
+
+        db.session.commit()
+        flash('Producto actualizado exitosamente', 'success')
+        
+    return redirect(url_for('productos'))
+
+@app.route('/productos/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    try:
+        db.session.delete(producto)
+        db.session.commit()
+        flash('Producto eliminado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el producto: {str(e)}', 'error')
+        
+    return redirect(url_for('productos'))
+
+@app.route('/get_producto_details/<int:id>')
+@login_required
+def get_producto_details(id):
+    producto = Producto.query.get_or_404(id)
+    producto_dict = {
+        'id': producto.id,
+        'nombre': producto.nombre,
+        'descripcion': producto.descripcion,
+        'precio': producto.precio,
+        'stock': producto.stock,
+        'codigo': producto.codigo,
+        'imagen': producto.imagen,
+        'categoria_id': producto.categoria_id,
+        'subcategoria_id': producto.subcategoria_id,
+        'proveedor_id': producto.proveedor_id
+    }
+    return jsonify(producto_dict)
 
 @app.route('/proveedores', methods=['GET', 'POST'])
 @login_required
 def proveedores():
+    session['previous_page'] = url_for('dashboard')
     return render_template('proveedores.html', show_back_button=True)
 
 @app.route('/nosotros')
@@ -377,4 +653,5 @@ def get_previous_page():
 if __name__ == '__main__':
      with app.app_context():
         db.create_all()  # Crea las tablas en la base de datos si no existen
+        initialize_data()  # Inicializa los datos de ejemplo
      app.run(debug=True)

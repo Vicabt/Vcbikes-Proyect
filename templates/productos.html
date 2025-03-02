@@ -64,55 +64,40 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Ejemplo de datos -->
-                        <tr>
-                            <td>BK001</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
-                            <td>Bicicleta Mountain Bike 29"</td>
-                            <td>Mountain Bike</td>
-                            <td>$599.99</td>
-                            <td>15</td>
-                            <td><span class="badge bg-success">Activo</span></td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>BK002</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
-                            <td>Casco Protector Profesional</td>
-                            <td>Accesorios</td>
-                            <td>$89.99</td>
-                            <td>3</td>
-                            <td><span class="badge bg-warning text-dark">Bajo Stock</span></td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>BK003</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Producto" width="50"></td>
-                            <td>Kit de Herramientas para Bicicleta</td>
-                            <td>Herramientas</td>
-                            <td>$45.50</td>
-                            <td>0</td>
-                            <td><span class="badge bg-danger">Agotado</span></td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary btn-edit" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                    {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.codigo }}</td>
+                        <td>
+                            {% if producto.imagen %}
+                            <img src="{{ url_for('static', filename=producto.imagen) }}" alt="{{ producto.nombre }}" width="50">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Sin imagen" width="50">
+                            {% endif %}
+                        </td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.categoria.nombre if producto.categoria else 'Sin categoría' }}</td>
+                        <td>${{ '%.2f'|format(producto.precio) }}</td>
+                        <td>{{ producto.stock }}</td>
+                        <td>
+                            {% if producto.stock > 10 %}
+                            <span class="badge bg-success">Disponible</span>
+                            {% elif producto.stock > 0 %}
+                            <span class="badge bg-warning text-dark">Bajo Stock</span>
+                            {% else %}
+                            <span class="badge bg-danger">Agotado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary btn-edit" data-id="{{ producto.id }}" title="Editar" data-bs-toggle="modal" data-bs-target="#editProductModal"><i class="fas fa-edit"></i></button>
+                                <form action="{{ url_for('eliminar_producto', id=producto.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline-danger btn-delete" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')"><i class="fas fa-trash"></i></button>
+                                </form>
+                                <button class="btn btn-outline-info btn-view" data-id="{{ producto.id }}" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -144,60 +129,98 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="productForm">
+                <form id="productForm" method="POST" action="{{ url_for('nuevo_producto') }}" enctype="multipart/form-data"> {{ form.csrf_token }}
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="productCode" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="productCode" required>
+                            <label for="codigo" class="form-label">Código</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                                <input type="text" class="form-control" id="codigo" name="codigo" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="productCategory" class="form-label">Categoría</label>
-                            <select class="form-select" id="productCategory" required>
-                                <option value="">Seleccionar categoría</option>
-                                {% for categoria in categorias %}
-                                <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                            <label for="categoria_id" class="form-label">Categoría</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre del producto</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-box"></i></span>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="precio" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="stock" class="form-label">Stock</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                                <input type="number" class="form-control" id="stock" name="stock" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="imagen" class="form-label">Imagen</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-image"></i></span>
+                            <input type="file" class="form-control" id="imagen" name="imagen">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="subcategoria_id" class="form-label">Subcategoría</label>
+                            <select class="form-select" id="subcategoria_id" name="subcategoria_id">
+                                <option value="">Seleccionar subcategoría</option>
+                                {% for subcategoria in subcategorias %}
+                                <option value="{{ subcategoria.id }}" {% if producto.subcategoria_id == subcategoria.id %}selected{% endif %}>{{ subcategoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="proveedor_id" class="form-label">Proveedor</label>
+                            <select class="form-select" id="proveedor_id" name="proveedor_id">
+                                <option value="">Seleccionar proveedor</option>
+                                {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}" {% if producto.proveedor_id == proveedor.id %}selected{% endif %}>{{ proveedor.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="productName" class="form-label">Nombre del producto</label>
-                        <input type="text" class="form-control" id="productName" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="productPrice" class="form-label">Precio</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="productPrice" step="0.01" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="productStock" class="form-label">Stock</label>
-                            <input type="number" class="form-control" id="productStock" min="0" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productImage" class="form-label">Imagen</label>
-                        <input type="file" class="form-control" id="productImage">
-                    </div>
-                    <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="productActive" checked>
-                            <label class="form-check-label" for="productActive">
+                            <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
+                            <label class="form-check-label" for="activo">
                                 Producto activo
                             </label>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                    </div>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar Producto</button>
             </div>
         </div>
     </div>
@@ -212,50 +235,71 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="editProductForm">
+                <form id="editProductForm" method="POST" action="{{ url_for('editar_producto', id=0) }}" enctype="multipart/form-data">
+                    <input type="hidden" id="editProductId" name="id" value="">
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="editProductCode" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="editProductCode" required>
+                            <input type="text" class="form-control" id="editProductCode" name="codigo" required>
                         </div>
                         <div class="col-md-6">
                             <label for="editProductCategory" class="form-label">Categoría</label>
-                            <select class="form-select" id="editProductCategory" required>
+                            <select class="form-select" id="editProductCategory" name="categoria_id" required>
                                 <option value="">Seleccionar categoría</option>
                                 {% for categoria in categorias %}
-                                <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="editProductName" class="form-label">Nombre del producto</label>
-                        <input type="text" class="form-control" id="editProductName" required>
+                        <input type="text" class="form-control" id="editProductName" name="nombre" required>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="editProductPrice" class="form-label">Precio</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="editProductPrice" step="0.01" required>
+                                <input type="number" class="form-control" id="editProductPrice" name="precio" step="0.01" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="editProductStock" class="form-label">Stock</label>
-                            <input type="number" class="form-control" id="editProductStock" min="0" required>
+                            <input type="number" class="form-control" id="editProductStock" name="stock" min="0" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="editProductDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="editProductDescription" rows="3"></textarea>
+                        <textarea class="form-control" id="editProductDescription" name="descripcion" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="editProductImage" class="form-label">Imagen</label>
-                        <input type="file" class="form-control" id="editProductImage">
+                        <input type="file" class="form-control" id="editProductImage" name="imagen">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="subcategoria_id" class="form-label">Subcategoría</label>
+                            <select class="form-select" id="editProductSubcategory" name="subcategoria_id">
+                                <option value="">Seleccionar subcategoría</option>
+                                {% for subcategoria in subcategorias %}
+                                <option value="{{ subcategoria.id }}">{{ subcategoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="proveedor_id" class="form-label">Proveedor</label>
+                            <select class="form-select" id="editProductProvider" name="proveedor_id">
+                                <option value="">Seleccionar proveedor</option>
+                                {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="editProductActive" checked>
+                            <input class="form-check-input" type="checkbox" id="editProductActive" name="activo" checked>
                             <label class="form-check-label" for="editProductActive">
                                 Producto activo
                             </label>
@@ -265,7 +309,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar Cambios</button>
+                <button type="submit" form="editProductForm" class="btn btn-primary">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -278,26 +322,66 @@
         // Función para manejar la edición de productos
         const editButtons = document.querySelectorAll('.btn-edit');
         editButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const productCode = row.cells[0].textContent;
-                const productName = row.cells[2].textContent;
-                const productCategory = row.cells[3].textContent;
-                const productPrice = row.cells[4].textContent.replace('$', '');
-                const productStock = row.cells[5].textContent;
-                const productDescription = row.cells[6].textContent;
-                const productActive = row.cells[7].querySelector('.badge').classList.contains('bg-success');
+        button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-id');
 
-                // Rellenar el formulario de edición con los datos del producto
-                document.getElementById('editProductCode').value = productCode;
-                document.getElementById('editProductName').value = productName;
-                document.getElementById('editProductCategory').value = productCategory;
-                document.getElementById('editProductPrice').value = productPrice;
-                document.getElementById('editProductStock').value = productStock;
-                document.getElementById('editProductDescription').value = productDescription;
-                document.getElementById('editProductActive').checked = productActive;
+        
+        // Cargar subcategorías
+        fetch('/get_subcategorias/1')  // Cambia '1' por el ID de la categoría seleccionada
+            .then(response => response.json())
+            .then(data => {
+                const subcategoriaSelect = document.getElementById('subcategoria_id');
+                data.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.id;
+                    option.textContent = sub.nombre;
+                    subcategoriaSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error al cargar subcategorías:', error));
+
+        // Cargar proveedores
+        fetch('/get_proveedores')
+            .then(response => response.json())
+            .then(data => {
+                const proveedorSelect = document.getElementById('proveedor_id');
+                data.forEach(prov => {
+                    const option = document.createElement('option');
+                    option.value = prov.id;
+                    option.textContent = prov.nombre;
+                    proveedorSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error al cargar proveedores:', error));
+    
+        
+        // Hacer una petición AJAX para obtener los datos del producto
+        fetch(`/get_producto_details/${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Rellenar el formulario con los datos del producto
+                document.getElementById('editProductCode').value = data.codigo;
+                document.getElementById('editProductName').value = data.nombre;
+                document.getElementById('editProductCategory').value = data.categoria_id;
+                document.getElementById('editProductPrice').value = data.precio;
+                document.getElementById('editProductStock').value = data.stock;
+                document.getElementById('editProductDescription').value = data.descripcion;
+                document.getElementById('editProductId').value = productId;
+                document.getElementById('editProductForm').action = `/productos/editar/${productId}`;
+                
+                // También necesitarías añadir la URL de acción al formulario
+                document.getElementById('editProductId').value = productId;
+                document.getElementById('editProductForm').action = `/productos/editar/${productId}`;
+
+                if (data.subcategoria_id) {
+                    document.getElementById('editProductSubcategory').value = data.subcategoria_id;
+                }
+                if (data.proveedor_id) {
+                    document.getElementById('editProductProvider').value = data.proveedor_id;
+                }
             });
-        });
+    });
+});
 
         // Función para manejar la eliminación de productos
         const deleteButtons = document.querySelectorAll('.btn-delete');
@@ -323,6 +407,36 @@
                 alert(`Ver detalles del producto con código ${productCode}`);
                 // Aquí puedes agregar lógica para mostrar detalles (modal, redirección, etc.)
             });
+        });
+    });
+
+        // Actualizar subcategorías cuando cambia la categoría seleccionada
+        const categoriasDropdowns = document.querySelectorAll('[name="categoria_id"]');
+        categoriasDropdowns.forEach(dropdown => {
+            dropdown.addEventListener('change', function() {
+                const categoriaId = this.value;
+                const formParent = this.closest('form');
+                const subcategoriaDropdown = formParent.querySelector('[name="subcategoria_id"]');
+
+                // Limpiar opciones existentes (excepto la predeterminada)
+                while (subcategoriaDropdown.options.length > 1) {
+                    subcategoriaDropdown.remove(1);
+                }
+
+                if (categoriaId) {
+                    // Solicitar subcategorías para esta categoría
+                    fetch(`/get_subcategorias/${categoriaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(subcategoria => {
+                                const option = document.createElement('option');
+                                option.value = subcategoria.id;
+                                option.textContent = subcategoria.nombre;
+                                subcategoriaDropdown.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Error cargando subcategorías:', error));
+                }   
         });
     });
 </script>

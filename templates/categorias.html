@@ -149,7 +149,7 @@
     <div class="categories-list">
         {% for category in categories %}
         <div class="category-item">
-            <h2>{{ category.name }}</h2>
+            <h2>{{ category.nombre }}</h2>
             <p>{{ category.description }}</p>
             <div class="category-actions">
                 <a href="{{ url_for('editar_categoria', category_id=category.id) }}" class="btn btn-edit">

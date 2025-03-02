@@ -23,7 +23,12 @@
                             <label for="cargo" class="form-label">Cargo</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                <input type="text" class="form-control form-control-lg" id="cargo" name="cargo" value="{{ empleado.cargo }}" required>
+                                <select class="form-select form-control-lg" id="cargo" name="cargo" required>
+                                    <option value="Vendedor" {% if empleado.cargo == 'Vendedor' %}selected{% endif %}>Vendedor</option>
+                                    <option value="Mecánico" {% if empleado.cargo == 'Mecánico' %}selected{% endif %}>Mecánico</option>
+                                    <option value="Administrador" {% if empleado.cargo == 'Administrador' %}selected{% endif %}>Administrador</option>
+                                    <option value="Encargado de Inventario" {% if empleado.cargo == 'Encargado de Inventario' %}selected{% endif %}>Encargado de Inventario</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -63,7 +68,7 @@
                             <label for="contratacion" class="form-label">Fecha de Contratación</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                <input type="date" class="form-control form-control-lg" id="contratacion" name="contratacion" value="{{ empleado.contratacion }}" required>
+                                <input type="date" class="form-control form-control-lg" id="contratacion" name="contratacion" value="{{ empleado.contratacion.strftime('%Y-%m-%d') if empleado.contratacion else '' }}" required>
                             </div>
                         </div>
                     </div>

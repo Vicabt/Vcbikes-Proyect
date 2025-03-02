@@ -19,16 +19,16 @@
             <div class="card shadow-sm">
                 <div class="card-body text-center">
                     
-                    <h4 class="card-title">{{ nombre }} {{ apellido }}</h4>  <!-- Usar las variables aquí -->
+                    <h4 class="card-title">{{ nombre }}</h4>  <!-- Usar las variables aquí -->
                     <p class="text-muted mb-1">Administrador</p>
                     <p class="text-muted mb-3">{{ email }}</p>  <!-- Usar la variable aquí -->
                     <p class="mb-2"><i class="fas fa-calendar me-2"></i>Miembro desde: 10/01/2024</p>
-                    <p><i class="fas fa-map-marker-alt me-2"></i>Ubicación: Bogotá, Colombia</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i>Ubicación: <span id="ubicacion-actual">Bogotá, Colombia</span></p>
                     <hr>
                     <div class="d-flex justify-content-center">
-                        <button class="btn btn-outline-danger me-2">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger me-2">
                             <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
-                        </button>
+                        </a>
                         <button class="btn btn-outline-primary">
                             <i class="fas fa-key me-1"></i>Cambiar Contraseña
                         </button>
@@ -53,13 +53,6 @@
                                     <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="apellido" class="form-label">Apellido</label>
-                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                    <input type="text" class="form-control" id="apellido" name="apellido" value="{{ apellido }}" required>
-                                </div>
-                            </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -82,36 +75,6 @@
                              <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
                                     <input type="text" class="form-control" id="direccion" name="direccion" value="{{ direccion }}">
-                                </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="ciudad" class="form-label">Ciudad</label>
-                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
-                                    <input type="text" class="form-control" id="ciudad" name="ciudad" value="{{ ciudad }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="estado" class="form-label">Departamento</label>
-                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-map"></i></span>
-                                    <input type="text" class="form-control" id="estado" name="estado" value="{{ estado }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="codigo_postal" class="form-label">Código Postal</label>
-                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-mail-bulk"></i></span>
-                                    <input type="text" class="form-control" id="codigo_postal" name="codigo_postal" value="{{ codigo_postal }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="biografia" class="form-label">Biografía/Información adicional</label>
-                             <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-book"></i></span>
-                                <textarea class="form-control" id="biografia" name="biografia" rows="3">{{ biografia }}</textarea>
                                 </div>
                         </div>
                         <button type="submit" class="btn btn-primary">
@@ -150,5 +113,33 @@
 {% endblock %}
 
 {% block extra_js %}
-
+<script>
+    function obtenerUbicacion() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                // Use reverse geocoding to get city and country
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const ciudad = data.address.city || data.address.town || data.address.village;
+                        const pais = data.address.country;
+                        document.getElementById('ubicacion-actual').textContent = `${ciudad}, ${pais}`;
+                    })
+                    .catch(error => {
+                        console.error('Error getting location:', error);
+                    });
+            }, function(error) {
+                console.error('Error getting location:', error);
+            });
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+        }
+    }
+    
+    // Call the function when page loads
+    document.addEventListener('DOMContentLoaded', obtenerUbicacion);
+    </script>
 {% endblock %}
