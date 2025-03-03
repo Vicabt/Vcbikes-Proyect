@@ -234,7 +234,33 @@ def eliminar_categoria(category_id):
 @login_required
 def subcategorias():
     session['previous_page'] = url_for('dashboard')
-    return render_template('subcategorias.html', show_back_button=True) # Mostramos el boton de regreso
+    categorias = Categoria.query.all()
+    
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        parent_category = request.form.get('parent_category')
+        subcategory_name = request.form.get('subcategory_name')
+        subcategory_description = request.form.get('subcategory_description')
+        
+        # Crear nueva subcategoría
+        nueva_subcategoria = Subcategoria(
+            nombre=subcategory_name,
+            descripcion=subcategory_description,
+            categoria_id=parent_category
+        )
+        
+        try:
+            db.session.add(nueva_subcategoria)
+            db.session.commit()
+            flash('Subcategoría agregada con éxito!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al agregar la subcategoría: {str(e)}', 'error')
+        
+        return redirect(url_for('subcategorias'))
+    
+    subcategorias = Subcategoria.query.all()
+    return render_template('subcategorias.html', categorias=categorias, subcategorias=subcategorias, show_back_button=True)
 
 @app.route('/get_subcategorias/<int:categoria_id>')
 @login_required
@@ -512,6 +538,11 @@ def productos():
     categorias = Categoria.query.all()
     subcategorias = Subcategoria.query.all()
     proveedores = Proveedor.query.all()
+
+    # Manejo de errores: verificar si hay datos
+    if not productos and not categorias and not subcategorias and not proveedores:
+        return render_template('productos.html', message='No hay productos, categorías, subcategorías o proveedores disponibles.')
+
     form = ProductoForm()  # Create form instance for CSRF token
     return render_template('productos.html', 
                     productos=productos,
@@ -629,20 +660,121 @@ def get_producto_details(id):
         'codigo': producto.codigo,
         'imagen': producto.imagen,
         'categoria_id': producto.categoria_id,
+        'categoria_nombre': producto.categoria_parent.nombre if producto.categoria_parent else None,
         'subcategoria_id': producto.subcategoria_id,
-        'proveedor_id': producto.proveedor_id
+        'subcategoria_nombre': producto.subcategoria_parent.nombre if producto.subcategoria_parent else None,
+        'proveedor_id': producto.proveedor_id,
+        'proveedor_nombre': producto.proveedor.nombre if producto.proveedor else None
     }
     return jsonify(producto_dict)
 
 @app.route('/proveedores', methods=['GET', 'POST'])
 @login_required
 def proveedores():
-    session['previous_page'] = url_for('dashboard')
-    return render_template('proveedores.html', show_back_button=True)
+    if request.method == 'POST':
+        nombre = request.form.get('provider_name')
+        contacto = request.form.get('provider_contact')
+        email = request.form.get('provider_email')
+        telefono = request.form.get('provider_phone')
+        direccion = request.form.get('provider_address')
+        descripcion = request.form.get('provider_description')
+
+        # Mensaje de depuración
+        print(f'Intentando agregar proveedor: {nombre}, {contacto}, {email}, {telefono}, {direccion}, {descripcion}')
+
+        # Verifica que el nombre no sea None o vacío
+        if not nombre:
+            flash('El nombre es obligatorio.', 'error')
+            return redirect(url_for('proveedores'))
+
+        nuevo_proveedor = Proveedor(
+            nombre=nombre,
+            contacto=contacto,
+            email=email,
+            telefono=telefono,
+            direccion=direccion,
+            descripcion=descripcion
+        )
+        try:
+            db.session.add(nuevo_proveedor)
+            db.session.commit()
+            flash('Proveedor agregado exitosamente.', 'success')
+        except Exception as e:
+            db.session.rollback()  # Deshacer la sesión en caso de error
+            flash(f'Error al agregar proveedor: {str(e)}', 'error')
+        
+        return redirect(url_for('proveedores'))
+
+    proveedores = Proveedor.query.all()  # Obtener todos los proveedores
+    return render_template('proveedores.html', proveedores=proveedores, show_back_button=True)
+
+@app.route('/proveedores/editar/<int:proveedor_id>', methods=['GET', 'POST'])
+@login_required
+def editar_proveedor(proveedor_id):
+    proveedor = Proveedor.query.get(proveedor_id)
+    if request.method == 'POST':
+        # Lógica para actualizar el proveedor
+        proveedor.nombre = request.form.get('provider_name')
+        proveedor.contacto = request.form.get('provider_contact')
+        proveedor.email = request.form.get('provider_email')
+        proveedor.telefono = request.form.get('provider_phone')
+        proveedor.direccion = request.form.get('provider_address')
+        proveedor.descripcion = request.form.get('provider_description')
+
+        try:
+            db.session.commit()
+            flash('Proveedor actualizado exitosamente.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar proveedor: {str(e)}', 'error')
+        proveedor.nombre = request.form.get('provider_name')
+        proveedor.contacto = request.form.get('provider_contact')
+        proveedor.email = request.form.get('provider_email')
+        proveedor.telefono = request.form.get('provider_phone')
+        proveedor.direccion = request.form.get('provider_address')
+        db.session.commit()
+        proveedor.descripcion = request.form.get('provider_description')
+        try:
+            db.session.commit()
+            flash('Proveedor actualizado exitosamente.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar proveedor: {str(e)}', 'error')
+        return redirect(url_for('proveedores'))
+
+    return render_template('editar_proveedor.html', proveedor=proveedor, show_back_button=True)
+
+@app.route('/get_proveedor_details/<int:proveedor_id>')
+@login_required
+def get_proveedor_details(proveedor_id):
+    proveedor = Proveedor.query.get(proveedor_id)
+    if proveedor:
+        return jsonify({
+            'nombre': proveedor.nombre,
+               'contacto': proveedor.contacto,
+               'email': proveedor.email,
+               'telefono': proveedor.telefono,
+               'direccion': proveedor.direccion,
+               'descripcion': proveedor.descripcion
+           })
+    else:
+        return jsonify({'error': 'Proveedor no encontrado'}), 404
+    
+@app.route('/proveedores/eliminar/<int:proveedor_id>', methods=['POST'])
+@login_required
+def eliminar_proveedor(proveedor_id):
+    proveedor = Proveedor.query.get(proveedor_id)
+    if proveedor:
+       db.session.delete(proveedor)
+       db.session.commit()
+       flash('Proveedor eliminado exitosamente.', 'success')
+    else:
+       flash('Proveedor no encontrado.', 'error')
+    return redirect(url_for('proveedores'))
 
 @app.route('/nosotros')
 def nosotros():
-    return render_template('nosotros.html', show_back_button=False) # No mostramos boton de regreso
+    return render_template('nosotros.html', show_back_button=False)  # No mostramos boton de regreso
 
 @app.route('/get_previous_page')
 def get_previous_page():

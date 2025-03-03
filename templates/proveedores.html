@@ -147,7 +147,7 @@
     <div class="provider-form">
         <h2>Agregar Nuevo Proveedor</h2>
         <form method="POST" action="{{ url_for('proveedores') }}">
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="provider_name" class="form-label">Nombre del Proveedor</label>
@@ -172,7 +172,7 @@
                 </div>
             </div>
             
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="provider_email" class="form-label">Correo Electrónico</label>
@@ -197,7 +197,7 @@
                 </div>
             </div>
             
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="provider_description" class="form-label">Descripción</label>
                 <div class="input-group">
                     <span class="input-group-text">
@@ -207,7 +207,7 @@
                 </div>
             </div>
             
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="provider_address" class="form-label">Dirección</label>
                 <div class="input-group">
                     <span class="input-group-text">
@@ -223,52 +223,28 @@
         </form>
     </div>
     
-    <h2>Proveedores Existentes</h2>
-    <div class="providers-list">
-        <div class="provider-item">
-            <h2>Moto Importaciones S.A.</h2>
-            <p>Distribuidor oficial de motocicletas y repuestos para Colombia.</p>
-            <div class="provider-contact">
-                <p><i class="fas fa-user"></i> Carlos Rodríguez</p>
-                <p><i class="fas fa-envelope"></i> carlos@motoimportaciones.com</p>
-                <p><i class="fas fa-phone"></i> +573001234567</p>
-            </div>
-            <div class="provider-actions">
-                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
-                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
-            </div>
-        </div>
-        
-        <div class="provider-item">
-            <h2>Accesorios Moto Ltda.</h2>
-            <p>Importador mayorista de accesorios para motocicletas.</p>
-            <div class="provider-contact">
-                <p><i class="fas fa-user"></i> Ana Martínez</p>
-                <p><i class="fas fa-envelope"></i> ana@accesoriosmoto.com</p>
-                <p><i class="fas fa-phone"></i> +573109876543</p>
-            </div>
-            <div class="provider-actions">
-                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
-                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+    <h2 class="mt-4">Proveedores Existentes</h2>
+    <div class="row">
+        {% for proveedor in proveedores %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ proveedor.nombre }}</h5>
+                    <p class="card-text">{{ proveedor.descripcion }}</p>
+                    <p><strong>Contacto:</strong> {{ proveedor.contacto }}</p>
+                    <p><strong>Email:</strong> {{ proveedor.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ proveedor.telefono }}</p>
+                    <div class="btn-group">
+                        <a href="{{ url_for('get_proveedor_details', proveedor_id=proveedor.id) }}" class="btn btn-outline-info">Ver</a>
+                        <a href="{{ url_for('editar_proveedor', proveedor_id=proveedor.id) }}" class="btn btn-outline-primary">Editar</a>
+                        <form action="{{ url_for('eliminar_proveedor', proveedor_id=proveedor.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?')">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="provider-item">
-            <h2>Repuestos Originales C.A.</h2>
-            <p>Proveedor de repuestos originales para todas las marcas.</p>
-            <div class="provider-contact">
-                <p><i class="fas fa-user"></i> Luis Gómez</p>
-                <p><i class="fas fa-envelope"></i> lgomez@repuestosoriginales.com</p>
-                <p><i class="fas fa-phone"></i> +573154567890</p>
-            </div>
-            <div class="provider-actions">
-                <button class="btn-view"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
-                <button class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

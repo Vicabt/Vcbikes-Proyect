@@ -11,7 +11,7 @@ class Categoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     # Relación con productos
-    productos = db.relationship('Producto', back_populates='categoria_parent', lazy=True)
+    productos = db.relationship('Producto', back_populates='categoria_parent', lazy=True, primaryjoin="Categoria.id == Producto.categoria_id")
     # Relación con subcategorías
     subcategorias = db.relationship('Subcategoria', backref='categoria', lazy=True)
 
@@ -77,9 +77,9 @@ class Producto(db.Model):
     proveedor = db.relationship('Proveedor', back_populates='productos')
     proveedor_id = db.Column(db.Integer, db.ForeignKey('proveedor.id'), nullable=True)
     stock = db.Column(db.Integer, default=0)
-    subcategoria_parent = db.relationship('Subcategoria', back_populates='productos')
+    subcategoria_parent = db.relationship('Subcategoria', back_populates='productos',  primaryjoin="Subcategoria.id == Producto.subcategoria_id")
     subcategoria_id = db.Column(db.Integer, db.ForeignKey('subcategoria.id'), nullable=True)
-    categoria_parent = db.relationship('Categoria', back_populates='productos')
+    categoria_parent = db.relationship('Categoria', back_populates='productos', primaryjoin="Categoria.id == Producto.categoria_id")
 
     def __repr__(self):
         return f"Producto('{self.nombre}', ${self.precio}, Stock: {self.stock})"
@@ -88,6 +88,7 @@ class Producto(db.Model):
 # Modelo de Proveedor
 class Proveedor(db.Model):
     contacto = db.Column(db.String(100))
+    descripcion = db.Column(db.Text, nullable = True)
     direccion = db.Column(db.String(200))
     email = db.Column(db.String(120), unique=True)
     id = db.Column(db.Integer, primary_key=True)

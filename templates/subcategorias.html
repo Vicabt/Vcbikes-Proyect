@@ -187,9 +187,9 @@
                             </span>
                             <select class="form-select" id="parent_category" name="parent_category" required>
                                 <option value="" selected disabled>Selecciona una categoría</option>
-                                <option value="1">Motocicletas</option>
-                                <option value="2">Repuestos</option>
-                                <option value="3">Accesorios</option>
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -217,8 +217,8 @@
                 </div>
             </div>
             
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addsubcategoryModal">
-                <i class="fas fa-plus me-1"></i> Nuevo Producto
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Agregar Subcategoría
             </button>
         </form>
     </div>
@@ -227,44 +227,28 @@
         <h2 class="mb-4">Estructura de Categorías</h2>
         
         <!-- Categoría: Motocicletas -->
-        <div class="category-section">
-            <div class="category-header">
-                <button class="category-toggle" data-target="moto-subcategories">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <h2>Motocicletas</h2>
-                <span class="badge">3 subcategorías</span>
-            </div>
-            
-            <div class="subcategory-list" id="moto-subcategories">
-                <div class="subcategory-item">
-                    <h3>Naked</h3>
-                    <p>Motocicletas de estilo deportivo sin carenado.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="subcategory-item">
-                    <h3>Racing</h3>
-                    <p>Motocicletas deportivas de alto rendimiento.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="subcategory-item">
-                    <h3>Classic</h3>
-                    <p>Motocicletas de estilo retro y clásico.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
+    <div class="category-section">
+        <div class="category-header">
+            <button class="category-toggle" data-target="moto-subcategories">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <h2>Motocicletas</h2>
+            <span class="badge">{{ categorias[0].subcategorias|length }} subcategorías</span>
         </div>
+        
+        <div class="subcategory-list" id="moto-subcategories">
+            {% for subcategoria in categorias[0].subcategorias %}
+                <div class="subcategory-item">
+                    <h3>{{ subcategoria.nombre }}</h3>
+                    <p>{{ subcategoria.descripcion }}</p>
+                    <div class="subcategory-actions">
+                        <button class="btn-sm btn-edit" data-id="{{ subcategoria.id }}"><i class="fas fa-edit"></i></button>
+                        <button class="btn-sm btn-delete" data-id="{{ subcategoria.id }}"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
         
         <!-- Categoría: Repuestos -->
         <div class="category-section">
@@ -343,7 +327,7 @@
                 const targetList = document.getElementById(targetId);
                 const icon = this.querySelector('i');
                 
-                if (targetList.style.display === 'none') {
+                if (targetList.style.display === 'none' || targetList.style.display === '') {
                     targetList.style.display = 'grid';
                     icon.classList.remove('fa-chevron-right');
                     icon.classList.add('fa-chevron-down');

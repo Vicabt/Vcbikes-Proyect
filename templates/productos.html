@@ -64,6 +64,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                    {% if productos %}
                     {% for producto in productos %}
                     <tr>
                         <td>{{ producto.codigo }}</td>
@@ -75,7 +76,7 @@
                             {% endif %}
                         </td>
                         <td>{{ producto.nombre }}</td>
-                        <td>{{ producto.categoria.nombre if producto.categoria else 'Sin categoría' }}</td>
+                        <td>{{ producto.categoria_parent.nombre if producto.categoria_parent else 'Sin categoría' }}</td>
                         <td>${{ '%.2f'|format(producto.precio) }}</td>
                         <td>{{ producto.stock }}</td>
                         <td>
@@ -98,6 +99,9 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    {% else %}
+                    <tr><td colspan="8" class="text-center">No hay productos disponibles.</td></tr>
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -116,6 +120,31 @@
                     </li>
                 </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles del producto -->
+<div class="modal fade" id="viewProductModal" tabindex="-1" aria-labelledby="viewProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewProductModalLabel">Detalles del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Código:</strong> <span id="viewProductCode"></span></p>
+                <p><strong>Nombre:</strong> <span id="viewProductName"></span></p>
+                <p><strong>Precio:</strong> $<span id="viewProductPrice"></span></p>
+                <p><strong>Stock:</strong> <span id="viewProductStock"></span></p>
+                <p><strong>Descripción:</strong> <span id="viewProductDescription"></span></p>
+                <p><strong>Categoría:</strong> <span id="viewProductCategory"></span></p>
+                <p><strong>Subcategoría:</strong> <span id="viewProductSubcategory"></span></p>
+                <p><strong>Proveedor:</strong> <span id="viewProductProvider"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -194,7 +223,7 @@
                             <select class="form-select" id="subcategoria_id" name="subcategoria_id">
                                 <option value="">Seleccionar subcategoría</option>
                                 {% for subcategoria in subcategorias %}
-                                <option value="{{ subcategoria.id }}" {% if producto.subcategoria_id == subcategoria.id %}selected{% endif %}>{{ subcategoria.nombre }}</option>
+                                <option value="{{ subcategoria.id }}">{{ subcategoria.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -203,7 +232,7 @@
                             <select class="form-select" id="proveedor_id" name="proveedor_id">
                                 <option value="">Seleccionar proveedor</option>
                                 {% for proveedor in proveedores %}
-                                <option value="{{ proveedor.id }}" {% if producto.proveedor_id == proveedor.id %}selected{% endif %}>{{ proveedor.nombre }}</option>
+                                <option value="{{ proveedor.id }}" {% if producto and producto.proveedor_id == proveedor.id %}selected{% endif %}>{{ proveedor.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -240,7 +269,10 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="editProductCode" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="editProductCode" name="codigo" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                                <input type="text" class="form-control" id="editProductCode" name="codigo" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label for="editProductCategory" class="form-label">Categoría</label>
@@ -254,7 +286,10 @@
                     </div>
                     <div class="mb-3">
                         <label for="editProductName" class="form-label">Nombre del producto</label>
-                        <input type="text" class="form-control" id="editProductName" name="nombre" required>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-box"></i></span>
+                            <input type="text" class="form-control" id="editProductName" name="nombre" required>
+                        </div>    
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -266,12 +301,18 @@
                         </div>
                         <div class="col-md-6">
                             <label for="editProductStock" class="form-label">Stock</label>
-                            <input type="number" class="form-control" id="editProductStock" name="stock" min="0" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                                <input type="number" class="form-control" id="editProductStock" name="stock" min="0" required>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="editProductDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="editProductDescription" name="descripcion" rows="3"></textarea>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                            <textarea class="form-control" id="editProductDescription" name="descripcion" rows="3"></textarea>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="editProductImage" class="form-label">Imagen</label>
@@ -279,7 +320,7 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="subcategoria_id" class="form-label">Subcategoría</label>
+                            <label for="editProductSubcategory" class="form-label">Subcategoría</label>
                             <select class="form-select" id="editProductSubcategory" name="subcategoria_id">
                                 <option value="">Seleccionar subcategoría</option>
                                 {% for subcategoria in subcategorias %}
@@ -288,7 +329,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="proveedor_id" class="form-label">Proveedor</label>
+                            <label for="editProductProvider" class="form-label">Proveedor</label>
                             <select class="form-select" id="editProductProvider" name="proveedor_id">
                                 <option value="">Seleccionar proveedor</option>
                                 {% for proveedor in proveedores %}
@@ -314,9 +355,7 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Función para manejar la edición de productos
@@ -402,10 +441,24 @@
         const viewButtons = document.querySelectorAll('.btn-view');
         viewButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const productCode = row.cells[0].textContent;
-                alert(`Ver detalles del producto con código ${productCode}`);
-                // Aquí puedes agregar lógica para mostrar detalles (modal, redirección, etc.)
+                const productId = this.getAttribute('data-id');
+                // Hacer una petición AJAX para obtener los datos del producto
+                fetch(`/get_producto_details/${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Rellenar el modal con los datos del producto
+                        document.getElementById('viewProductCode').textContent = data.codigo;
+                        document.getElementById('viewProductName').textContent = data.nombre;
+                        document.getElementById('viewProductPrice').textContent = data.precio;
+                        document.getElementById('viewProductStock').textContent = data.stock;
+                        document.getElementById('viewProductDescription').textContent = data.descripcion;
+                        document.getElementById('viewProductCategory').textContent = data.categoria_nombre;
+                        document.getElementById('viewProductSubcategory').textContent = data.subcategoria_nombre;
+                        document.getElementById('viewProductProvider').textContent = data.proveedor_nombre;
+                        // Mostrar el modal
+                        $('#viewProductModal').modal('show');
+                    })
+                    .catch(error => console.error('Error al cargar los detalles del producto:', error));
             });
         });
     });

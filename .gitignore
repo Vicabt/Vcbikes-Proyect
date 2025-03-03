@@ -1,2 +1,13 @@
+# Python
 .env
-env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.vscode/
+.idea/
+
+# Archivos Generales
+*.log
+.DS_Store
+Thumbs.db
