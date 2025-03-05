@@ -224,28 +224,40 @@
     </div>
     
     <h2 class="mt-4">Proveedores Existentes</h2>
-    <div class="row">
-        {% for proveedor in proveedores %}
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ proveedor.nombre }}</h5>
-                    <p class="card-text">{{ proveedor.descripcion }}</p>
-                    <p><strong>Contacto:</strong> {{ proveedor.contacto }}</p>
-                    <p><strong>Email:</strong> {{ proveedor.email }}</p>
-                    <p><strong>Teléfono:</strong> {{ proveedor.telefono }}</p>
-                    <div class="btn-group">
-                        <a href="{{ url_for('get_proveedor_details', proveedor_id=proveedor.id) }}" class="btn btn-outline-info">Ver</a>
-                        <a href="{{ url_for('editar_proveedor', proveedor_id=proveedor.id) }}" class="btn btn-outline-primary">Editar</a>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Contacto</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proveedor in proveedores %}
+            <tr>
+                <td>{{ proveedor.id }}</td>
+                <td>{{ proveedor.nombre }}</td>
+                <td>{{ proveedor.descripcion }}</td>
+                <td>{{ proveedor.contacto }}</td>
+                <td>{{ proveedor.email }}</td>
+                <td>{{ proveedor.telefono }}</td>
+                <td>
+                    <div class="category-actions">
+                        <a href="{{ url_for('editar_proveedor', proveedor_id=proveedor.id) }}" class="btn btn-edit">Editar</a>
                         <form action="{{ url_for('eliminar_proveedor', proveedor_id=proveedor.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?')">Eliminar</button>
+                            <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?')">Eliminar</button>
                         </form>
                     </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
 

@@ -7,10 +7,16 @@
 {% block extra_css %}
 <!-- Aquí puedes agregar CSS adicional específico para el dashboard -->
 <style>
+    /* Ajustar el margen superior del contenedor principal */
+    .main-container {
+        margin-top: 0; /* Eliminar margen superior */
+        padding-top: 0; /* Eliminar padding superior si es necesario */
+    }
+    
     /* Estilos del dashboard */
     .dashboard-container {
         display: flex;
-        min-height: calc(100vh - 150px);
+        min-height: calc(100vh - 50px);
     }
     
     .sidebar {

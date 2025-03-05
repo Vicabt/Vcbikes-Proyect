@@ -8,11 +8,11 @@ from flask_migrate import Migrate
 # Load environment variables from .env file
 load_dotenv()
 from datetime import datetime
-from models import db, User, Empleado, Categoria, Cliente, Subcategoria, Producto, Proveedor
+from models import db, User, Empleado, Categoria, Cliente, Subcategoria, Producto, Proveedor, Venta
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import logging
-from forms import ProductoForm
+from forms import ProductoForm, NuevaVentaForm, ClienteForm
 # Crear la aplicación Flask
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_key_for_development')  # Use environment variable
@@ -114,10 +114,12 @@ def logout():
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
+        logging.debug('Accediendo a la ruta de registro.')  # Log al inicio de la función de registro
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
         name = request.form.get('nombre') # Obtiene el nombre del formulario
+        telefono = request.form.get('telefono')
         confirm_password = request.form.get('confirm_password')
 
         print(f"Username recibido: {username}")
@@ -138,14 +140,22 @@ def registro():
             flash('El correo electrónico ya está registrado.', 'error')
             return render_template('registro.html')
 
-        # Crea un nuevo usuario
-        new_user = User(username=username, email=email, name=name) # Usa el parametro nombre
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash('Te has registrado exitosamente! Ahora puedes iniciar sesión.', 'success')
-        return redirect(url_for('login'))
+        try:
+            # Crea un nuevo usuario
+            password_hash = generate_password_hash(password)
+            new_user = User(username=username, email=email, name=name, telefono=telefono, password_hash=password_hash)
+            db.session.add(new_user)
+            db.session.commit()
+            logging.debug(f'Usuario creado: {new_user.username}, Email: {new_user.email}')  # Log de usuario creado
+            logging.debug(f'Hash de contraseña: {new_user.password_hash}')  # Log del hash de la contraseña
+            flash('Te has registrado exitosamente! Ahora puedes iniciar sesión.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            error_message = f'Error al registrar el usuario: {str(e)}'
+            logging.error(error_message)  # Log del error
+            flash(error_message, 'error')
+            return render_template('registro.html')
 
     return render_template('registro.html')
 
@@ -392,87 +402,54 @@ def get_employee_details(empleado_id):
     }
     return jsonify(empleado_dict)
 
-# En app.py
 @app.route('/clientes', methods=['GET', 'POST'])
 @login_required
 def clientes():
-    session['previous_page'] = url_for('dashboard')
-    if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        apellido = request.form.get('apellido')
-        email = request.form.get('email')
-        telefono = request.form.get('telefono')
-        direccion = request.form.get('direccion')
-        documento_identidad = request.form.get('documento_identidad')
+    form = ClienteForm()  # Crear una instancia del formulario
+    clientes = Cliente.query.all()
+    if form.validate_on_submit():  # Si el formulario se envía y es válido
+        if Cliente.query.filter_by(email=form.email.data).first():
+            flash('El email ya está registrado.', 'error')
+            return render_template('clientes.html', form=form, clientes=clientes, show_back_button=True)
 
-        # Validación básica
-        if not nombre:
-            flash('El nombre del cliente es obligatorio.', 'error')
-            return redirect(url_for('clientes'))
-
-        try:
-            nuevo_cliente = Cliente(
-                nombre=nombre,
-                apellido=apellido,
-                email=email,
-                telefono=telefono,
-                direccion=direccion,
-                documento_identidad=documento_identidad
-            )
-            db.session.add(nuevo_cliente)
-            db.session.commit()
-            flash('Cliente agregado con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al agregar el cliente: {str(e)}', 'error')
-
+        nuevo_cliente = Cliente(
+            nombre=form.nombre.data,
+            email=form.email.data,
+            telefono=form.telefono.data,
+            documento_identidad=form.documento_identidad.data,
+            direccion=form.direccion.data
+        )
+        db.session.add(nuevo_cliente)
+        db.session.commit()
+        flash('Cliente agregado con éxito!', 'success')
         return redirect(url_for('clientes'))
 
-    # Obtener todos los clientes de la base de datos
-    clientes = Cliente.query.all()
-    return render_template('clientes.html', clientes=clientes, show_back_button=True)
+    return render_template('clientes.html', form=form, clientes=clientes, show_back_button=True)
 
-@app.route('/clientes/editar/<int:cliente_id>', methods=['GET', 'POST'])
+@app.route('/clientes/editar/<int:id>', methods=['POST'])
 @login_required
-def editar_cliente(cliente_id):
-    cliente = Cliente.query.get_or_404(cliente_id)
-
-    if request.method == 'POST':
+def editar_cliente(id):
+    cliente = Cliente.query.get_or_404(id)
+    try:
         cliente.nombre = request.form.get('nombre')
-        cliente.apellido = request.form.get('apellido')
         cliente.email = request.form.get('email')
         cliente.telefono = request.form.get('telefono')
-        cliente.direccion = request.form.get('direccion')
         cliente.documento_identidad = request.form.get('documento_identidad')
-
-        # Validación básica
-        if not cliente.nombre:
-            flash('El nombre del cliente es obligatorio.', 'error')
-            return redirect(url_for('editar_cliente', cliente_id=cliente_id))
-
-        try:
-            db.session.commit()
-            flash('Cliente actualizado con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al actualizar el cliente: {str(e)}', 'error')
-
-        return redirect(url_for('clientes'))
-
-    return render_template('editar_cliente.html', cliente=cliente, show_back_button=True)
-
-@app.route('/clientes/eliminar/<int:cliente_id>', methods=['POST'])
-@login_required
-def eliminar_cliente(cliente_id):
-    cliente = Cliente.query.get_or_404(cliente_id)
-    try:
-        db.session.delete(cliente)
+        cliente.direccion = request.form.get('direccion')
         db.session.commit()
-        flash('Cliente eliminado con éxito!', 'success')
+        flash('Cliente actualizado con éxito!', 'success')
     except Exception as e:
-        db.session.rollback()
-        flash(f'Error al eliminar el cliente: {str(e)}', 'error')
+        db.session.rollback()  # Rollback in case of error
+        flash('Error al actualizar el cliente: ' + str(e), 'error')
+    return redirect(url_for('clientes'))
 
+@app.route('/clientes/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_cliente(id):
+    cliente = Cliente.query.get_or_404(id)
+    db.session.delete(cliente)
+    db.session.commit()
+    flash('Cliente eliminado con éxito!', 'success')
     return redirect(url_for('clientes'))
 
 @app.route('/get_cliente_details/<int:cliente_id>')
@@ -482,7 +459,6 @@ def get_cliente_details(cliente_id):
     cliente_dict = {
         'id': cliente.id,
         'nombre': cliente.nombre,
-        'apellido': cliente.apellido,
         'email': cliente.email,
         'telefono': cliente.telefono,
         'direccion': cliente.direccion,
@@ -524,11 +500,77 @@ def perfil():
                           biografia="",
                           show_back_button=True)
 
-@app.route('/ventas')
+@app.route('/ventas', methods=['GET', 'POST'])
 @login_required
 def ventas():
     session['previous_page'] = url_for('dashboard')
-    return render_template('ventas.html', show_back_button=True)
+    form = NuevaVentaForm()
+    if request.method == 'POST':
+        # Aquí puedes manejar la lógica para crear una nueva venta
+        cliente_id = request.form.get('cliente_id')
+        producto_id = request.form.get('producto_id')
+        total = request.form.get('total')
+        
+        nueva_venta = Venta(cliente_id=cliente_id, total=total, producto_id=producto_id)
+        db.session.add(nueva_venta)
+        db.session.commit()
+        flash('Venta registrada exitosamente', 'success')
+        
+        return redirect(url_for('ventas'))
+
+    # Si es un GET, mostrar la página de ventas
+    ventas = Venta.query.all()  # Recuperar todas las ventas
+    # Recuperar categorías y productos
+    categorias = Categoria.query.all()  
+    productos = Producto.query.all()  
+
+    
+    # Calcular estadísticas
+    total_ingresos = sum(venta.total for venta in ventas)
+    total_ventas = len(ventas)
+    ventas_pendientes = sum(1 for venta in ventas if venta.estado == 'pendiente')
+
+    # Calcular incremento (ajusta la lógica según tus necesidades)
+    if total_ventas > 0:
+        # Suponiendo que tienes una forma de obtener el total del mes anterior
+        total_ventas_anterior = 20  # Cambia esto por la lógica real
+        incremento = ((total_ventas - total_ventas_anterior) / total_ventas_anterior) * 100
+    else:
+        incremento = 0  # Si no hay ventas, el incremento es 0
+
+    # Recuperar el cliente correspondiente (ajustar según la lógica de tu aplicación)
+    cliente_id = request.args.get('cliente_id')  # Suponiendo que el cliente_id se pasa como parámetro en la URL
+    cliente = Cliente.query.get(cliente_id) if cliente_id else None
+
+    return render_template('ventas.html', ventas=ventas, total_ingresos=total_ingresos, total_ventas=total_ventas, ventas_pendientes=ventas_pendientes, incremento=incremento, form=form, productos=productos, cliente=cliente, show_back_button=True)
+
+@app.route('/ventas/<int:venta_id>')
+@login_required
+def ver_detalle_venta(venta_id):
+        venta = Venta.query.get_or_404(venta_id)
+        return render_template('detalle_venta.html', venta=venta)
+
+@app.route('/ventas/editar/<int:venta_id>', methods=['GET', 'POST'])
+@login_required
+def editar_venta(venta_id):
+    venta = Venta.query.get_or_404(venta_id)
+    if request.method == 'POST':
+        # Actualizar la venta con los datos del formulario
+        venta.cliente_id = request.form.get('cliente_id')
+        venta.total = request.form.get('total')
+        db.session.commit()
+        flash('Venta actualizada exitosamente', 'success')
+        return redirect(url_for('ventas'))
+    return render_template('editar_venta.html', venta=venta)
+
+@app.route('/ventas/eliminar/<int:venta_id>', methods=['POST'])
+@login_required
+def eliminar_venta(venta_id):
+    venta = Venta.query.get_or_404(venta_id)
+    db.session.delete(venta)
+    db.session.commit()
+    flash('Venta eliminada exitosamente', 'success')
+    return redirect(url_for('ventas'))
 
 @app.route('/productos')
 @login_required
@@ -786,4 +828,5 @@ if __name__ == '__main__':
      with app.app_context():
         db.create_all()  # Crea las tablas en la base de datos si no existen
         initialize_data()  # Inicializa los datos de ejemplo
+        logging.debug('Conexión a la base de datos establecida correctamente.')
      app.run(debug=True)

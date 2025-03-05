@@ -21,7 +21,6 @@ class Categoria(db.Model):
 
 # Modelo de Cliente
 class Cliente(db.Model):
-    apellido = db.Column(db.String(100))
     direccion = db.Column(db.String(200))
     documento_identidad = db.Column(db.String(20))
     email = db.Column(db.String(120), unique=True)
@@ -32,7 +31,7 @@ class Cliente(db.Model):
     ventas = db.relationship('Venta', backref='cliente', lazy=True)
 
     def __repr__(self):
-        return f"Cliente('{self.nombre} {self.apellido}')"
+        return f"Cliente('{self.nombre}')"
 
 
 # Modelo de DetalleVenta
@@ -131,13 +130,15 @@ class User(db.Model):
         return f"User('{self.username}', '{self.email}')"
 
 
-# Modelo de Venta
 class Venta(db.Model):
-    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
-    detalles = db.relationship('DetalleVenta', backref='venta', lazy=True)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'))  # Asegúrate de que este campo exista
     total = db.Column(db.Float, nullable=False)
+    estado = db.Column(db.String(20), default='pendiente')
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relación con Producto
+    producto = db.relationship('Producto', backref='ventas')
 
     def __repr__(self):
         return f"Venta(ID: {self.id}, Fecha: {self.fecha}, Total: ${self.total})"

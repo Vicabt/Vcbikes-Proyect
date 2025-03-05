@@ -70,9 +70,9 @@
                         <td>{{ producto.codigo }}</td>
                         <td>
                             {% if producto.imagen %}
-                            <img src="{{ url_for('static', filename=producto.imagen) }}" alt="{{ producto.nombre }}" width="50">
+                                <img src="{{ url_for('static', filename=producto.imagen) }}" alt="{{ producto.nombre }}" width="50" class="product-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="{{ url_for('static', filename=producto.imagen) }}">
                             {% else %}
-                            <img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Sin imagen" width="50">
+                                <img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Sin imagen" width="50" class="product-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="{{ url_for('static', filename='img/placeholder.png') }}">
                             {% endif %}
                         </td>
                         <td>{{ producto.nombre }}</td>
@@ -356,6 +356,21 @@
     </div>
 </div>
 
+<!-- Modal para mostrar imagen ampliada -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Imagen del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" src="" alt="Imagen del Producto" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Función para manejar la edición de productos
@@ -490,6 +505,18 @@
                         })
                         .catch(error => console.error('Error cargando subcategorías:', error));
                 }   
+        });
+    });
+    // Modal Click de imagen
+    document.addEventListener('DOMContentLoaded', function() {
+        const productImages = document.querySelectorAll('.product-image');
+        const modalImage = document.getElementById('modalImage');
+
+        productImages.forEach(image => {
+            image.addEventListener('click', function() {
+                const imageUrl = this.getAttribute('data-image');
+                modalImage.src = imageUrl; // Cambia la fuente de la imagen en el modal
+            });
         });
     });
 </script>

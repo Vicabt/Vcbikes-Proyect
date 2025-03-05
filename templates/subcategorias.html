@@ -226,93 +226,26 @@
     <div class="subcategory-tree">
         <h2 class="mb-4">Estructura de Categorías</h2>
         
-        <!-- Categoría: Motocicletas -->
+        <!-- Mostrar categorías y subcategorías -->
+    {% for categoria in categorias %}
     <div class="category-section">
         <div class="category-header">
-            <button class="category-toggle" data-target="moto-subcategories">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <h2>Motocicletas</h2>
-            <span class="badge">{{ categorias[0].subcategorias|length }} subcategorías</span>
+            <h2>{{ categoria.nombre }}</h2>
+            <span class="badge">{{ categoria.subcategorias|length }} subcategorías</span>
         </div>
         
-        <div class="subcategory-list" id="moto-subcategories">
-            {% for subcategoria in categorias[0].subcategorias %}
+        <div class="subcategory-list">
+            {% for subcategoria in categoria.subcategorias %}
                 <div class="subcategory-item">
                     <h3>{{ subcategoria.nombre }}</h3>
                     <p>{{ subcategoria.descripcion }}</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit" data-id="{{ subcategoria.id }}"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete" data-id="{{ subcategoria.id }}"><i class="fas fa-trash"></i></button>
-                    </div>
                 </div>
             {% endfor %}
         </div>
     </div>
-        
-        <!-- Categoría: Repuestos -->
-        <div class="category-section">
-            <div class="category-header">
-                <button class="category-toggle" data-target="repuestos-subcategories">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <h2>Repuestos</h2>
-                <span class="badge">2 subcategorías</span>
-            </div>
-            
-            <div class="subcategory-list" id="repuestos-subcategories">
-                <div class="subcategory-item">
-                    <h3>Motor</h3>
-                    <p>Repuestos para el sistema de motor y transmisión.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="subcategory-item">
-                    <h3>Frenos</h3>
-                    <p>Sistemas de frenado y piezas relacionadas.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Categoría: Accesorios -->
-        <div class="category-section">
-            <div class="category-header">
-                <button class="category-toggle" data-target="accesorios-subcategories">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <h2>Accesorios</h2>
-                <span class="badge">2 subcategorías</span>
-            </div>
-            
-            <div class="subcategory-list" id="accesorios-subcategories">
-                <div class="subcategory-item">
-                    <h3>Equipo de Protección</h3>
-                    <p>Cascos, chaquetas y demás equipo de seguridad.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="subcategory-item">
-                    <h3>Equipaje</h3>
-                    <p>Maletas, alforjas y sistemas de transporte.</p>
-                    <div class="subcategory-actions">
-                        <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{% endfor %}
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

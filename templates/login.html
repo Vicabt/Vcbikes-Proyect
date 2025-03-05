@@ -4,6 +4,29 @@
 {% block title %}Iniciar Sesión - VcBikes{% endblock %}
 
 {% block content %}
+
+<!-- Navbar -->
+<nav class="navbar fixed-top">
+    <div class="nav-container">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="VcBikes Logo" class="logo">
+        </a>
+        <div class="nav-menu">
+            <a href="{{ url_for('index') }}#inicio" class="nav-link">Inicio</a>
+            <a href="{{ url_for('index') }}#servicios" class="nav-link">Servicios</a>
+            <a href="{{ url_for('nosotros') }}#nosotros" class="nav-link">Sobre Nosotros</a>
+            <a href="{{ url_for('contacto') }}" class="nav-link">Contacto</a>
+        </div>
+        <div class="auth-buttons">
+            <a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a>
+            <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+        </div>
+        <button id="menuBtn" class="mobile-menu-btn" type="button" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
 <div class="auth-container" role="form" aria-labelledby="login-title">
     <div class="auth-box">
         <h2 class="text-center mb-4" id="login-title">Iniciar Sesión</h2>

@@ -4,6 +4,15 @@
 
 {% block content %}
 <div class="container py-4">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-title"><i class="fas fa-users me-2"></i>Gestión de Clientes</h1>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addclienteModal">
@@ -52,52 +61,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Ejemplo de datos -->
+                        
+                        {% for cliente in clientes %}
                         <tr>
-                            <td>1</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
-                            <td>María López</td>
-                            <td>maria.lopez@vcbikes.com</td>
-                            <td>+57 321 456 7890</td>
+                            <td>{{ cliente.id }}</td>
+                            <td>{{ cliente.nombre }}</td>
+                            <td>{{ cliente.email }}</td>
+                            <td>{{ cliente.telefono }}</td>
                             <td><span class="badge bg-success">Activo</span></td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclienteModal" onclick="editcliente(1)"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(1)"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(1)"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-outline-primary" title="Editar" onclick="editcliente('{{ cliente.id }}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente('{{ cliente.id }}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-outline-info" title="Ver detalles" onclick="viewcliente('{{ cliente.id }}')"><i class="fas fa-eye"></i></button>
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td>2</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
-                            <td>Carlos Rodríguez</td>
-                            <td>carlos.rodriguez@vcbikes.com</td>
-                            <td>+57 300 123 4567</td>
-                            <td><span class="badge bg-success">Activo</span></td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclenteModal" onclick="editcliente(2)"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(2)"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(2)"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td><img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="cliente" class="rounded-circle" width="40"></td>
-                            <td>Andrés Gómez</td>
-                            <td>andres.gomez@vcbikes.com</td>
-                            <td>+57 315 987 6543</td>
-                            <td><span class="badge bg-success">Activo</span></td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" title="Editar" data-bs-toggle="modal" data-bs-target="#editclenteModal" onclick="editcliente(3)"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-outline-danger" title="Eliminar" onclick="deletecliente(3)"><i class="fas fa-trash"></i></button>
-                                    <button class="btn btn-outline-info" title="Ver detalles" data-bs-toggle="modal" data-bs-target="#viewclienteModal" onclick="viewcliente(3)"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -128,36 +108,52 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="clienteForm">
+                <form id="clienteForm" method="POST" action="{{ url_for('clientes') }}">
+                    {{ form.hidden_tag() }}
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="clienteName" class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" id="clienteName" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-user" aria-hidden="true"></i></span>
+                                <input type="text" class="form-control" id="clienteName" name="nombre" required>
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="clienteEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="clienteEmail" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-envelope" aria-hidden="true"></i></span>
+                                <input type="email" class="form-control" id="clienteEmail" name="email" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label for="clientePhone" class="form-label">Teléfono</label>
-                            <input type="tel" class="form-control" id="clientePhone" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-phone" aria-hidden="true"></i></span>
+                                <input type="tel" class="form-control" id="clientePhone" name="telefono" required>
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="clienteDocument" class="form-label">Documento de Identidad</label>
-                            <input type="text" class="form-control" id="clienteDocument" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-id-card" aria-hidden="true"></i></span>
+                                <input type="text" class="form-control" id="clienteDocument" name="documento_identidad" required>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="clienteAddress" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="clienteAddress">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+                            <input type="text" class="form-control" id="clienteAddress" name="direccion">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="clienteActive" checked>
+                            <input class="form-check-input" type="checkbox" id="clienteActive" name="activo" checked>
                             <label class="form-check-label" for="clienteActive">
                                 Cliente activo
                             </label>
@@ -167,7 +163,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar Empleado</button>
+                <button type="button" class="btn btn-primary" id="guardarClienteBtn" onclick="document.getElementById('clienteForm').submit();">Guardar Cliente</button>
             </div>
         </div>
     </div>
@@ -202,10 +198,8 @@
                 <h5 class="modal-title" id="viewclienteModalLabel">Detalles del Cliente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form id="viewclienteForm">
-                    <!-- Campos del formulario de visualización -->
-                </form>
+            <div class="modal-body" id="viewclienteModalBody">
+                <!-- Campos del formulario de visualización -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -221,20 +215,87 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Función para editar cliente
         window.editcliente = function(id) {
-            // Lógica para cargar los datos del cliente en el formulario de edición
-            console.log('Editar cliente', id);
+            console.log("Editing client with ID:", id);
+            fetch(`/get_cliente_details/${id}`).then(response => response.json()).then(data => {
+                document.getElementById('editclienteForm').innerHTML = `
+                    <div class='row mb-3'>
+                        <div class='col-md-6'>
+                            <label for='clienteName' class='form-label'>Nombre Completo</label>
+                            <input type='text' class='form-control' id='clienteName' value='${data.nombre}' required>
+                        </div>
+                    </div>
+                    <div class='row mb-3'>
+                        <div class='col-md-6'>
+                            <label for='clienteEmail' class='form-label'>Email</label>
+                            <input type='email' class='form-control' id='clienteEmail' value='${data.email}' required>
+                        </div>
+                        <div class='col-md-6'>
+                            <label for='clientePhone' class='form-label'>Teléfono</label>
+                            <input type='tel' class='form-control' id='clientePhone' value='${data.telefono}' required>
+                        </div>
+                    </div>
+                    <div class='row mb-3'>
+                        <div class='col-md-6'>
+                            <label for='clienteDocument' class='form-label'>Documento de Identidad</label>
+                            <input type='text' class='form-control' id='clienteDocument' value='${data.documento_identidad}' required>
+                        </div>
+                    </div>
+                    <div class='mb-3'>
+                        <label for='clienteAddress' class='form-label'>Dirección</label>
+                        <input type='text' class='form-control' id='clienteAddress' value='${data.direccion}'>
+                    </div>
+                `;
+                $('#editclienteModal').modal('show'); // Show the modal
+                document.getElementById('editclienteForm').onsubmit = function(event) {
+                    event.preventDefault();
+                    const updatedData = new FormData();
+                    updatedData.append('nombre', document.getElementById('clienteName').value);
+                    updatedData.append('email', document.getElementById('clienteEmail').value);
+                    updatedData.append('telefono', document.getElementById('clientePhone').value);
+                    updatedData.append('documento_identidad', document.getElementById('clienteDocument').value);
+                    updatedData.append('direccion', document.getElementById('clienteAddress').value);
+                    fetch(`/clientes/editar/${id}`, {
+                        method: 'POST',
+                        body: updatedData
+                    }).then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            alert('Error al editar el cliente.');
+                        }
+                    });
+                };
+            });
         };
 
         // Función para eliminar cliente
         window.deletecliente = function(id) {
-            // Lógica para eliminar el cliente
-            console.log('Eliminar cliente', id);
+            if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
+                fetch(`/clientes/eliminar/${id}`, {
+                    method: 'POST'
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload(); // Recargar la página para ver los cambios
+                    } else {
+                        alert('Error al eliminar el cliente.');
+                    }
+                });
+            }
         };
 
         // Función para ver detalles del cliente
         window.viewcliente = function(id) {
-            // Lógica para cargar los datos del cliente en el formulario de visualización
-            console.log('Ver detalles del cliente', id);
+            fetch(`/get_cliente_details/${id}`).then(response => response.json()).then(data => {
+                const detailsHtml = `
+                    <p><strong>Nombre:</strong> ${data.nombre}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Teléfono:</strong> ${data.telefono}</p>
+                    <p><strong>Documento de Identidad:</strong> ${data.documento_identidad}</p>
+                    <p><strong>Dirección:</strong> ${data.direccion}</p>
+                `;
+                document.getElementById('viewclienteModalBody').innerHTML = detailsHtml;
+                $('#viewclienteModal').modal('show'); // Show the modal
+            });
         };
     });
 </script>

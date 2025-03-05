@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, DecimalField, IntegerField, SelectField, SubmitField
+from wtforms import StringField, TextAreaField, DecimalField, IntegerField, SelectField, SubmitField, EmailField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 class ProductoForm(FlaskForm):
@@ -22,3 +22,17 @@ class ProductoForm(FlaskForm):
         self.categoria_id.choices = [('', 'Seleccione una categoría')] # Modificado
         self.subcategoria.choices = [('', 'Seleccione una subcategoría')]
         self.proveedor.choices = [('', 'Seleccione un proveedor')]
+
+class NuevaVentaForm(FlaskForm):
+    cliente_id = StringField('Cliente ID', validators=[DataRequired()])
+    producto_id = SelectField('Producto', validators=[DataRequired()])
+    cantidad = IntegerField('Cantidad', validators=[DataRequired(), NumberRange(min=1)])
+    submit = SubmitField('Registrar Venta')
+
+class ClienteForm(FlaskForm):
+    nombre = StringField('Nombre', validators=[DataRequired(), Length(min=2, max=100)])
+    email = EmailField('Email', validators=[DataRequired()])
+    telefono = StringField('Teléfono', validators=[Optional(), Length(max=20)])
+    direccion = StringField('Dirección', validators=[Optional(), Length(max=200)])
+    documento_identidad = StringField('Documento de Identidad', validators=[Optional(), Length(max=20)])
+    submit = SubmitField('Agregar Cliente')
