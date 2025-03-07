@@ -624,6 +624,15 @@ def nuevo_producto():
             flash('El código y el nombre son obligatorios', 'error')
             return redirect(url_for('productos'))
 
+        # Procesar la imagen si se ha subido una
+        imagen_path = None
+        if imagen and imagen.filename:
+            filename = secure_filename(imagen.filename)
+            # Guardar el archivo en la carpeta de uploads
+            imagen.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            # Guardar la ruta relativa a la carpeta static
+            imagen_path = f'uploads/{filename}'
+
         # Guardar en la base de datos
         nuevo_producto = Producto(
             codigo=codigo,
@@ -634,7 +643,7 @@ def nuevo_producto():
             categoria_id=categoria_id,
             subcategoria_id=subcategoria_id,
             proveedor_id=proveedor_id,
-            imagen=imagen.filename if imagen else None
+            imagen=imagen_path  # Guardar la ruta relativa
         )
         db.session.add(nuevo_producto)
         db.session.commit()

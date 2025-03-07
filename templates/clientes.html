@@ -221,28 +221,43 @@
                     <div class='row mb-3'>
                         <div class='col-md-6'>
                             <label for='clienteName' class='form-label'>Nombre Completo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-user" aria-hidden="true"></i></span>
                             <input type='text' class='form-control' id='clienteName' value='${data.nombre}' required>
+                            </div>
                         </div>
                     </div>
                     <div class='row mb-3'>
                         <div class='col-md-6'>
                             <label for='clienteEmail' class='form-label'>Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-envelope" aria-hidden="true"></i></span>
                             <input type='email' class='form-control' id='clienteEmail' value='${data.email}' required>
+                            </div>
                         </div>
                         <div class='col-md-6'>
                             <label for='clientePhone' class='form-label'>Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-phone" aria-hidden="true"></i></span>
                             <input type='tel' class='form-control' id='clientePhone' value='${data.telefono}' required>
+                            </div>
                         </div>
                     </div>
                     <div class='row mb-3'>
                         <div class='col-md-6'>
                             <label for='clienteDocument' class='form-label'>Documento de Identidad</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-id-card" aria-hidden="true"></i></span>
                             <input type='text' class='form-control' id='clienteDocument' value='${data.documento_identidad}' required>
+                            </div>
                         </div>
                     </div>
                     <div class='mb-3'>
                         <label for='clienteAddress' class='form-label'>Dirección</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
                         <input type='text' class='form-control' id='clienteAddress' value='${data.direccion}'>
+                        </div>
                     </div>
                 `;
                 $('#editclienteModal').modal('show'); // Show the modal

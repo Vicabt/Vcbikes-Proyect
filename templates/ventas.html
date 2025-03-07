@@ -193,11 +193,17 @@
                     </div>
                     <div class="mb-3">
                         <label for="descuento" class="form-label">Descuento (%)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-percent"></i></span>
                         <input type="number" class="form-control" id="descuento" name="descuento" step="0.01" min="0" value="0">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="total" class="form-label">Total</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-dollar-sign"></i></span>
                         <input type="number" class="form-control" id="total" name="total" step="0.01" required readonly>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
