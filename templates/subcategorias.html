@@ -226,7 +226,7 @@
     <div class="subcategory-tree">
         <h2 class="mb-4">Estructura de Categorías</h2>
         
-        <!-- Mostrar categorías y subcategorías -->
+    <!-- Mostrar categorías y subcategorías -->
     {% for categoria in categorias %}
     <div class="category-section">
         <div class="category-header">
@@ -234,16 +234,111 @@
             <span class="badge">{{ categoria.subcategorias|length }} subcategorías</span>
         </div>
         
-        <div class="subcategory-list">
-            {% for subcategoria in categoria.subcategorias %}
-                <div class="subcategory-item">
-                    <h3>{{ subcategoria.nombre }}</h3>
-                    <p>{{ subcategoria.descripcion }}</p>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% if categoria.subcategorias %}
+                            {% for subcategoria in categoria.subcategorias %}
+                            <tr>
+                                <td>{{ subcategoria.nombre }}</td>
+                                <td>{{ subcategoria.descripcion }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary btn-edit" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editSubcategoryModal" 
+                                                data-subcategory-id="{{ subcategoria.id }}"
+                                                data-subcategory-name="{{ subcategoria.nombre }}"
+                                                data-subcategory-description="{{ subcategoria.descripcion }}"
+                                                data-category-id="{{ categoria.id }}"
+                                                title="Editar" 
+                                                aria-label="Editar subcategoría {{ subcategoria.nombre }}">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                        <form method="POST" action="{{ url_for('eliminar_subcategoria', subcategory_id=subcategoria.id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline-danger btn-delete" title="Eliminar" aria-label="Eliminar subcategoría {{ subcategoria.nombre }}" onclick="return confirm('¿Estás seguro de que deseas eliminar esta subcategoría?')">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="3" class="text-center">No hay subcategorías disponibles para esta categoría.</td></tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endfor %}
+            </div>
         </div>
     </div>
 {% endfor %}
+</div>
+
+<!-- Modal para editar subcategoría -->
+<div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSubcategoryModalLabel">Editar Subcategoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="editSubcategoryForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_subcategory_id" name="subcategory_id">
+                    
+                    <div class="mb-3">
+                        <label for="edit_parent_category" class="form-label">Categoría Principal</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-folder"></i>
+                            </span>
+                            <select class="form-select" id="edit_parent_category" name="parent_category" required>
+                                <option value="" selected disabled>Selecciona una categoría</option>
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_subcategory_name" class="form-label">Nombre de la Subcategoría</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-tag"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_subcategory_name" name="subcategory_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_subcategory_description" class="form-label">Descripción</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-align-left"></i>
+                            </span>
+                            <textarea class="form-control" id="edit_subcategory_description" name="subcategory_description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
@@ -272,58 +367,36 @@
             });
         });
         
-        // Manejar edición de subcategorías
-        const editButtons = document.querySelectorAll('.subcategory-item .btn-edit');
-        
-        editButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const subcategoryItem = this.closest('.subcategory-item');
-                const subcategoryName = subcategoryItem.querySelector('h3').textContent;
-                const subcategoryDescription = subcategoryItem.querySelector('p').textContent;
-                const parentCategoryHeader = subcategoryItem.closest('.category-section').querySelector('.category-header h2').textContent;
+        // Modal de edición de subcategorías
+        const editSubcategoryModal = document.getElementById('editSubcategoryModal');
+        if (editSubcategoryModal) {
+            editSubcategoryModal.addEventListener('show.bs.modal', function (event) {
+                // Botón que activó el modal
+                const button = event.relatedTarget;
                 
-                // Mapear el nombre de la categoría a su valor en el select
-                let parentCategoryValue;
-                switch (parentCategoryHeader) {
-                    case 'Motocicletas':
-                        parentCategoryValue = '1';
-                        break;
-                    case 'Repuestos':
-                        parentCategoryValue = '2';
-                        break;
-                    case 'Accesorios':
-                        parentCategoryValue = '3';
-                        break;
-                    default:
-                        parentCategoryValue = '';
-                }
+                // Extraer información de los atributos data-*
+                const subcategoryId = button.getAttribute('data-subcategory-id');
+                const subcategoryName = button.getAttribute('data-subcategory-name');
+                const subcategoryDescription = button.getAttribute('data-subcategory-description');
+                const categoryId = button.getAttribute('data-category-id');
                 
-                // Rellenar el formulario con los datos de la subcategoría
-                document.getElementById('parent_category').value = parentCategoryValue;
-                document.getElementById('subcategory_name').value = subcategoryName;
-                document.getElementById('subcategory_description').value = subcategoryDescription;
+                // Actualizar los campos del formulario
+                const form = editSubcategoryModal.querySelector('#editSubcategoryForm');
+                const subcategoryIdInput = form.querySelector('#edit_subcategory_id');
+                const parentCategorySelect = form.querySelector('#edit_parent_category');
+                const subcategoryNameInput = form.querySelector('#edit_subcategory_name');
+                const subcategoryDescriptionInput = form.querySelector('#edit_subcategory_description');
                 
-                // Hacer scroll hasta el formulario
-                document.querySelector('.subcategory-form').scrollIntoView({ behavior: 'smooth' });
+                // Establecer la acción del formulario
+                form.action = `/actualizar_subcategoria/${subcategoryId}`;
+                
+                // Actualizar los campos
+                subcategoryIdInput.value = subcategoryId;
+                parentCategorySelect.value = categoryId;
+                subcategoryNameInput.value = subcategoryName;
+                subcategoryDescriptionInput.value = subcategoryDescription;
             });
-        });
-        
-        // Manejar eliminación de subcategorías
-        const deleteButtons = document.querySelectorAll('.subcategory-item .btn-delete');
-        
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const subcategoryItem = this.closest('.subcategory-item');
-                const subcategoryName = subcategoryItem.querySelector('h3').textContent;
-                
-                if (confirm(`¿Estás seguro de que deseas eliminar la subcategoría "${subcategoryName}"?`)) {
-                    // Aquí iría la lógica para eliminar la subcategoría
-                    console.log(`Subcategoría "${subcategoryName}" eliminada`);
-                    // Efecto visual temporal (en producción se haría una petición AJAX)
-                    subcategoryItem.style.opacity = '0.5';
-                }
-            });
-        });
+        }
     });
 </script>
 {% endblock %}

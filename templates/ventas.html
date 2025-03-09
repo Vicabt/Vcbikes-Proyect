@@ -127,15 +127,35 @@
                             <td>${{ '%.2f'|format(venta.total) }}</td>
                             <td><span class="badge {{ 'bg-success' if venta.estado == 'completado' else 'bg-warning' if venta.estado == 'pendiente' else 'bg-danger' }}">{{ venta.estado }}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-info" title="Ver detalle">
+                                <button class="btn btn-sm btn-info" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detalleVentaModal"
+                                        data-venta-id="{{ venta.id }}"
+                                        data-cliente-nombre="{{ venta.cliente.nombre }}"
+                                        data-fecha="{{ venta.fecha.strftime('%d/%m/%Y') }}"
+                                        data-producto-nombre="{{ venta.producto.nombre }}"
+                                        data-total="{{ '%.2f'|format(venta.total) }}"
+                                        data-estado="{{ venta.estado }}"
+                                        title="Ver detalle">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-sm btn-primary" title="Editar">
+                                <button class="btn btn-sm btn-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editarVentaModal"
+                                        data-venta-id="{{ venta.id }}"
+                                        data-cliente-id="{{ venta.cliente_id }}"
+                                        data-producto-id="{{ venta.producto_id }}"
+                                        data-total="{{ venta.total }}"
+                                        title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <form method="POST" action="{{ url_for('eliminar_venta', venta_id=venta.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta venta?')"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
@@ -171,15 +191,18 @@
             </div>
             <div class="modal-body">
                 <form id="nuevaVentaForm" method="POST" action="{{ url_for('ventas') }}" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="{{ form.csrf_token() }}
-                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                    {{ form.csrf_token }}
                     <div class="mb-3">
                         <label for="cliente_id" class="form-label">Cliente</label>
                         <select class="form-select" id="cliente_id" name="cliente_id" required>
                             <option value="">Seleccionar cliente</option>
-                            {% for cliente in clientes %}
-                            <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
-                            {% endfor %}
+                            {% if clientes %}
+                                {% for cliente in clientes %}
+                                    <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" disabled>No hay clientes disponibles</option>
+                            {% endif %}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -205,6 +228,14 @@
                         <input type="number" class="form-control" id="total" name="total" step="0.01" required readonly>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado de la Venta</label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completado">Completado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Registrar Venta</button>
@@ -214,6 +245,102 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para editar venta -->
+<div class="modal fade" id="editarVentaModal" tabindex="-1" aria-labelledby="editarVentaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarVentaModalLabel">Editar Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarVentaForm" method="POST">
+                    {{ form.csrf_token }}
+                    <input type="hidden" id="editar_venta_id" name="venta_id">
+                    <div class="mb-3">
+                        <label for="editar_cliente_id" class="form-label">Cliente</label>
+                        <select class="form-select" id="editar_cliente_id" name="cliente_id" required>
+                            <option value="">Seleccionar cliente</option>
+                            {% if clientes %}
+                                {% for cliente in clientes %}
+                                    <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" disabled>No hay clientes disponibles</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_producto_id" class="form-label">Producto</label>
+                        <select class="form-select" id="editar_producto_id" name="producto_id" required>
+                            <option value="">Seleccionar producto</option>
+                            {% for producto in productos %}
+                            <option value="{{ producto.id }}" data-precio="{{ producto.precio }}" data-stock="{{ producto.stock }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_descuento" class="form-label">Descuento (%)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-percent"></i></span>
+                            <input type="number" class="form-control" id="editar_descuento" name="descuento" step="0.01" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_total" class="form-label">Total</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-dollar-sign"></i></span>
+                            <input type="number" class="form-control" id="editar_total" name="total" step="0.01" required readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_estado" class="form-label">Estado de la Venta</label>
+                        <select class="form-select" id="editar_estado" name="estado" required>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completado">Completado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles de venta -->
+<div class="modal fade" id="detalleVentaModal" tabindex="-1" aria-labelledby="detalleVentaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalleVentaModalLabel">Detalles de la Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>ID Venta:</strong> <span id="detalle-venta-id"></span></p>
+                        <p><strong>Fecha:</strong> <span id="detalle-fecha"></span></p>
+                        <p><strong>Cliente:</strong> <span id="detalle-cliente"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Producto:</strong> <span id="detalle-producto"></span></p>
+                        <p><strong>Total:</strong> $<span id="detalle-total"></span></p>
+                        <p><strong>Estado:</strong> <span id="detalle-estado" class="badge"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -263,16 +390,96 @@
             totalInput.value = totalConDescuento;
         });
 
-        // Funcionalidad para los botones de la tabla (ejemplo)
-        const btnInfoList = document.querySelectorAll('.btn-info');
-        btnInfoList.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const ventaId = row.cells[0].textContent;
-                alert(`Ver detalles de la venta ${ventaId}`);
-                // Aquí puedes agregar lógica para mostrar detalles (modal, redirección, etc.)
+        // Funcionalidad para el modal de edición
+        const editarVentaModal = document.getElementById('editarVentaModal');
+        if (editarVentaModal) {
+            editarVentaModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const ventaId = button.getAttribute('data-venta-id');
+                const clienteId = button.getAttribute('data-cliente-id');
+                const productoId = button.getAttribute('data-producto-id');
+                const total = button.getAttribute('data-total');
+                const estado = button.getAttribute('data-estado');
+
+                // Actualizar el formulario con los datos de la venta
+                const form = editarVentaModal.querySelector('#editarVentaForm');
+                form.action = `/ventas/editar/${ventaId}`;
+                
+                document.getElementById('editar_venta_id').value = ventaId;
+                document.getElementById('editar_cliente_id').value = clienteId;
+                document.getElementById('editar_producto_id').value = productoId;
+                document.getElementById('editar_total').value = total;
+                document.getElementById('editar_estado').value = estado;
+
+                // Calcular y establecer el descuento si es necesario
+                const productoSelect = document.getElementById('editar_producto_id');
+                const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+                if (selectedOption) {
+                    const precio = parseFloat(selectedOption.getAttribute('data-precio'));
+                    if (precio > 0) {
+                        const descuento = ((precio - total) / precio) * 100;
+                        document.getElementById('editar_descuento').value = descuento.toFixed(2);
+                    }
+                }
             });
+        }
+
+        // Evento para calcular el total al seleccionar un producto en el modal de edición
+        const editarProductoSelect = document.getElementById('editar_producto_id');
+        const editarTotalInput = document.getElementById('editar_total');
+        const editarDescuentoInput = document.getElementById('editar_descuento');
+
+        editarProductoSelect.addEventListener('change', function() {
+            calcularTotalEdicion();
         });
+
+        editarDescuentoInput.addEventListener('input', function() {
+            calcularTotalEdicion();
+        });
+
+        function calcularTotalEdicion() {
+            const selectedOption = editarProductoSelect.options[editarProductoSelect.selectedIndex];
+            const precio = parseFloat(selectedOption.getAttribute('data-precio'));
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+
+            if (stock > 0) {
+                const descuento = parseFloat(editarDescuentoInput.value) || 0;
+                const totalConDescuento = precio - (precio * (descuento / 100));
+                editarTotalInput.value = totalConDescuento.toFixed(2);
+            } else {
+                alert('Este producto no está disponible en stock.');
+                editarTotalInput.value = 0;
+            }
+        }
+
+        // Funcionalidad para el modal de detalles
+        const detalleVentaModal = document.getElementById('detalleVentaModal');
+        if (detalleVentaModal) {
+            detalleVentaModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                
+                // Obtener datos del botón
+                const ventaId = button.getAttribute('data-venta-id');
+                const clienteNombre = button.getAttribute('data-cliente-nombre');
+                const fecha = button.getAttribute('data-fecha');
+                const productoNombre = button.getAttribute('data-producto-nombre');
+                const total = button.getAttribute('data-total');
+                const estado = button.getAttribute('data-estado');
+                
+                // Actualizar el contenido del modal
+                document.getElementById('detalle-venta-id').textContent = ventaId;
+                document.getElementById('detalle-fecha').textContent = fecha;
+                document.getElementById('detalle-cliente').textContent = clienteNombre;
+                document.getElementById('detalle-producto').textContent = productoNombre;
+                document.getElementById('detalle-total').textContent = total;
+                
+                const estadoSpan = document.getElementById('detalle-estado');
+                estadoSpan.textContent = estado;
+                estadoSpan.className = 'badge ' + 
+                    (estado === 'completado' ? 'bg-success' : 
+                     estado === 'pendiente' ? 'bg-warning' : 'bg-danger');
+            });
+        }
     });
 </script>
 {% endblock %}

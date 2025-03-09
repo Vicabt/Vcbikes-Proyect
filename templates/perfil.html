@@ -29,7 +29,7 @@
                         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger me-2">
                             <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                         </a>
-                        <button class="btn btn-outline-primary">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#cambiarPasswordModal">
                             <i class="fas fa-key me-1"></i>Cambiar Contraseña
                         </button>
                     </div>
@@ -110,10 +110,71 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Cambiar Contraseña -->
+<div class="modal fade" id="cambiarPasswordModal" tabindex="-1" aria-labelledby="cambiarPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cambiarPasswordModalLabel">Cambiar Contraseña</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="cambiarPasswordForm" method="POST" action="{{ url_for('cambiar_password') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="password_actual" class="form-label">Contraseña Actual</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password_actual" name="password_actual" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_nuevo" class="form-label">Nueva Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-key"></i></span>
+                            <input type="password" class="form-control" id="password_nuevo" name="password_nuevo" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirmar" class="form-label">Confirmar Nueva Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-key"></i></span>
+                            <input type="password" class="form-control" id="password_confirmar" name="password_confirmar" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
+{{ super() }}
 <script>
+    // Validación del formulario de cambio de contraseña
+    document.getElementById('cambiarPasswordForm').addEventListener('submit', function(e) {
+        const passwordNuevo = document.getElementById('password_nuevo').value;
+        const passwordConfirmar = document.getElementById('password_confirmar').value;
+        
+        if (passwordNuevo !== passwordConfirmar) {
+            e.preventDefault();
+            alert('Las contraseñas nuevas no coinciden');
+            return false;
+        }
+        
+        if (passwordNuevo.length < 8) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 8 caracteres');
+            return false;
+        }
+    });
+    
     function obtenerUbicacion() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -141,5 +202,5 @@
     
     // Call the function when page loads
     document.addEventListener('DOMContentLoaded', obtenerUbicacion);
-    </script>
+</script>
 {% endblock %}

@@ -247,10 +247,22 @@
                 <td>{{ proveedor.email }}</td>
                 <td>{{ proveedor.telefono }}</td>
                 <td>
-                    <div class="category-actions">
-                        <a href="{{ url_for('editar_proveedor', proveedor_id=proveedor.id) }}" class="btn btn-edit">Editar</a>
-                        <form action="{{ url_for('eliminar_proveedor', proveedor_id=proveedor.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?')">Eliminar</button>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary btn-edit"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editProviderModal"
+                                data-provider-id="{{ proveedor.id }}"
+                                title="Editar"
+                                aria-label="Editar proveedor {{ proveedor.nombre }}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <form method="POST" action="{{ url_for('eliminar_proveedor', proveedor_id=proveedor.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-delete" 
+                                    title="Eliminar" 
+                                    aria-label="Eliminar proveedor {{ proveedor.nombre }}"
+                                    onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?')">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
                         </form>
                     </div>
                 </td>
@@ -258,6 +270,87 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+
+<!-- Modal para editar proveedor -->
+<div class="modal fade" id="editProviderModal" tabindex="-1" aria-labelledby="editProviderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProviderModalLabel">Editar Proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="editProviderForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_provider_id" name="provider_id">
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_name" class="form-label">Nombre del Proveedor</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_provider_name" name="provider_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_contact" class="form-label">Persona de Contacto</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_provider_contact" name="provider_contact">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="edit_provider_email" name="provider_email">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_phone" class="form-label">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_provider_phone" name="provider_phone">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_address" class="form-label">Dirección</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_provider_address" name="provider_address">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_provider_description" class="form-label">Descripción</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-align-left"></i>
+                            </span>
+                            <textarea class="form-control" id="edit_provider_description" name="provider_description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -319,6 +412,39 @@
                 // window.location.href = `/proveedores/detalle/${providerID}`;
             });
         });
+
+        // Modal de edición de proveedores
+        const editProviderModal = document.getElementById('editProviderModal');
+        if (editProviderModal) {
+            editProviderModal.addEventListener('show.bs.modal', function (event) {
+                // Botón que activó el modal
+                const button = event.relatedTarget;
+                
+                // Obtener el ID del proveedor
+                const providerId = button.getAttribute('data-provider-id');
+                
+                // Realizar una petición AJAX para obtener los datos del proveedor
+                fetch(`/get_proveedor_details/${providerId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Actualizar los campos del formulario
+                        const form = editProviderModal.querySelector('#editProviderForm');
+                        form.action = `/proveedores/editar/${providerId}`;
+                        
+                        document.getElementById('edit_provider_id').value = providerId;
+                        document.getElementById('edit_provider_name').value = data.nombre;
+                        document.getElementById('edit_provider_contact').value = data.contacto;
+                        document.getElementById('edit_provider_email').value = data.email;
+                        document.getElementById('edit_provider_phone').value = data.telefono;
+                        document.getElementById('edit_provider_address').value = data.direccion;
+                        document.getElementById('edit_provider_description').value = data.descripcion;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al cargar los datos del proveedor');
+                    });
+            });
+        }
     });
 </script>
 {% endblock %}

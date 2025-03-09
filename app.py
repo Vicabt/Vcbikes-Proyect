@@ -1,18 +1,20 @@
 import os
+import secrets
 from functools import wraps
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify 
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-
-# Load environment variables from .env file
-load_dotenv()
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, User, Empleado, Categoria, Cliente, Subcategoria, Producto, Proveedor, Venta
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import logging
 from forms import ProductoForm, NuevaVentaForm, ClienteForm
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Crear la aplicación Flask
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_key_for_development')  # Use environment variable
@@ -166,7 +168,94 @@ def recuperar_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', show_back_button=False) # No mostramos boton de regreso
+    try:
+        # Estadísticas básicas
+        total_productos = Producto.query.count()
+        total_clientes = Cliente.query.count()
+        
+        # Estadísticas de ventas
+        hoy = datetime.now()
+        primer_dia_mes = datetime(hoy.year, hoy.month, 1)
+        
+        # Ventas del mes
+        ventas_mes = Venta.query.filter(Venta.fecha >= primer_dia_mes).count()
+        
+        # Ingresos del mes actual
+        ingresos_mes = db.session.query(db.func.sum(Venta.total))\
+            .filter(Venta.fecha >= primer_dia_mes)\
+            .scalar() or 0
+        ingresos_mes = round(float(ingresos_mes), 2)
+        
+        # Total histórico de ingresos
+        total_ingresos = db.session.query(db.func.sum(Venta.total)).scalar() or 0
+        total_ingresos = round(float(total_ingresos), 2)
+        
+        # Productos con stock bajo (menos de 5 unidades)
+        umbral_stock_bajo = 5
+        productos_bajo_stock = Producto.query.filter(Producto.stock <= umbral_stock_bajo).count()
+        
+        # Productos más vendidos (top 5)
+        productos_mas_vendidos = db.session.query(
+            Producto.nombre,
+            db.func.count(Venta.id).label('total_ventas')
+        ).join(Venta)\
+         .group_by(Producto.id)\
+         .order_by(db.text('total_ventas DESC'))\
+         .limit(5)\
+         .all()
+        
+        # Categorías más populares
+        categorias_populares = db.session.query(
+            Categoria.nombre,
+            db.func.count(Producto.id).label('total_productos')
+        ).join(Producto)\
+         .group_by(Categoria.id)\
+         .order_by(db.text('total_productos DESC'))\
+         .limit(5)\
+         .all()
+        
+        # Total de proveedores
+        total_proveedores = Proveedor.query.count()
+        
+        # Total de empleados
+        total_empleados = Empleado.query.count()
+        
+        # Promedio de venta por cliente
+        promedio_venta = db.session.query(
+            db.func.avg(Venta.total)
+        ).scalar() or 0
+        promedio_venta = round(float(promedio_venta), 2)
+        
+        return render_template('dashboard.html',
+                             total_productos=total_productos,
+                             ventas_mes=ventas_mes,
+                             total_clientes=total_clientes,
+                             productos_bajo_stock=productos_bajo_stock,
+                             total_ingresos=total_ingresos,
+                             ingresos_mes=ingresos_mes,
+                             productos_mas_vendidos=productos_mas_vendidos,
+                             categorias_populares=categorias_populares,
+                             total_proveedores=total_proveedores,
+                             total_empleados=total_empleados,
+                             promedio_venta=promedio_venta,
+                             show_back_button=False)
+                             
+    except Exception as e:
+        app.logger.error(f'Error en el dashboard: {str(e)}')
+        flash('Error al cargar los datos del dashboard', 'error')
+        return render_template('dashboard.html', 
+                             total_productos=0,
+                             ventas_mes=0,
+                             total_clientes=0,
+                             productos_bajo_stock=0,
+                             total_ingresos=0,
+                             ingresos_mes=0,
+                             productos_mas_vendidos=[],
+                             categorias_populares=[],
+                             total_proveedores=0,
+                             total_empleados=0,
+                             promedio_venta=0,
+                             show_back_button=False)
 
 
 @app.route('/categorias', methods=['GET', 'POST'])
@@ -281,6 +370,46 @@ def get_subcategorias(categoria_id):
     subcategorias = Subcategoria.query.filter_by(categoria_id=categoria_id).all()
     subcategorias_dict = [{'id': sub.id, 'nombre': sub.nombre} for sub in subcategorias]
     return jsonify(subcategorias_dict)
+
+@app.route('/actualizar_subcategoria/<int:subcategory_id>', methods=['POST'])
+@login_required
+def actualizar_subcategoria(subcategory_id):
+    # Obtener datos del formulario
+    parent_category_id = request.form.get('parent_category')
+    subcategory_name = request.form.get('subcategory_name')
+    subcategory_description = request.form.get('subcategory_description')
+    
+    # Buscar la subcategoría por ID
+    subcategoria = Subcategoria.query.get_or_404(subcategory_id)
+    
+    # Actualizar los datos
+    subcategoria.categoria_id = parent_category_id
+    subcategoria.nombre = subcategory_name
+    subcategoria.descripcion = subcategory_description
+    
+    try:
+        # Guardar los cambios
+        db.session.commit()
+        flash('Subcategoría actualizada correctamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar la subcategoría: {str(e)}', 'error')
+    
+    return redirect(url_for('subcategorias'))
+
+@app.route('/eliminar_subcategoria/<int:subcategory_id>', methods=['POST'])
+@login_required
+def eliminar_subcategoria(subcategory_id):
+    subcategoria = Subcategoria.query.get_or_404(subcategory_id)
+    try:
+        db.session.delete(subcategoria)
+        db.session.commit()
+        flash('Subcategoría eliminada correctamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la subcategoría: {str(e)}', 'error')
+    
+    return redirect(url_for('subcategorias'))
 
 @app.route('/configuracion_usuario')
 @login_required
@@ -508,16 +637,41 @@ def perfil():
 def ventas():
     session['previous_page'] = url_for('dashboard')
     form = NuevaVentaForm()
+    
+    # Obtener todos los clientes para el selector
+    clientes = Cliente.query.all()
+    
     if request.method == 'POST':
-        # Aquí puedes manejar la lógica para crear una nueva venta
-        cliente_id = request.form.get('cliente_id')
-        producto_id = request.form.get('producto_id')
-        total = request.form.get('total')
-        
-        nueva_venta = Venta(cliente_id=cliente_id, total=total, producto_id=producto_id)
-        db.session.add(nueva_venta)
-        db.session.commit()
-        flash('Venta registrada exitosamente', 'success')
+        try:
+            cliente_id = request.form.get('cliente_id')
+            producto_id = request.form.get('producto_id')
+            total = request.form.get('total')
+            estado = request.form.get('estado', 'pendiente')  # Por defecto es pendiente
+            
+            # Crear nueva venta
+            nueva_venta = Venta(
+                cliente_id=cliente_id,
+                producto_id=producto_id,
+                total=total,
+                estado=estado,
+                fecha=datetime.now()
+            )
+            
+            # Si la venta está completada, actualizar el stock del producto
+            if estado == 'completado':
+                producto = Producto.query.get(producto_id)
+                if producto and producto.stock > 0:
+                    producto.stock -= 1
+                else:
+                    raise ValueError('No hay stock disponible para este producto')
+            
+            db.session.add(nueva_venta)
+            db.session.commit()
+            flash('Venta registrada exitosamente', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al registrar la venta: {str(e)}', 'error')
         
         return redirect(url_for('ventas'))
 
@@ -527,52 +681,89 @@ def ventas():
     categorias = Categoria.query.all()  
     productos = Producto.query.all()  
 
-    
     # Calcular estadísticas
     total_ingresos = sum(venta.total for venta in ventas)
     total_ventas = len(ventas)
     ventas_pendientes = sum(1 for venta in ventas if venta.estado == 'pendiente')
 
-    # Calcular incremento (ajusta la lógica según tus necesidades)
-    if total_ventas > 0:
-        # Suponiendo que tienes una forma de obtener el total del mes anterior
-        total_ventas_anterior = 20  # Cambia esto por la lógica real
-        incremento = ((total_ventas - total_ventas_anterior) / total_ventas_anterior) * 100
+    # Calcular incremento comparando mes actual vs mes anterior
+    # Obtener el primer día del mes actual y del mes anterior
+    hoy = datetime.now()
+    primer_dia_mes_actual = datetime(hoy.year, hoy.month, 1)
+    ultimo_dia_mes_anterior = primer_dia_mes_actual - timedelta(days=1)
+    primer_dia_mes_anterior = datetime(ultimo_dia_mes_anterior.year, ultimo_dia_mes_anterior.month, 1)
+
+    # Contar ventas del mes actual y del mes anterior
+    ventas_mes_actual = sum(1 for venta in ventas if primer_dia_mes_actual <= venta.fecha <= hoy)
+    ventas_mes_anterior = sum(1 for venta in ventas if primer_dia_mes_anterior <= venta.fecha < primer_dia_mes_actual)
+
+    # Calcular incremento
+    if ventas_mes_anterior > 0:
+        incremento = ((ventas_mes_actual - ventas_mes_anterior) / ventas_mes_anterior) * 100
     else:
-        incremento = 0  # Si no hay ventas, el incremento es 0
+        incremento = 100 if ventas_mes_actual > 0 else 0
 
-    # Recuperar el cliente correspondiente (ajustar según la lógica de tu aplicación)
-    cliente_id = request.args.get('cliente_id')  # Suponiendo que el cliente_id se pasa como parámetro en la URL
-    cliente = Cliente.query.get(cliente_id) if cliente_id else None
+    return render_template('ventas.html', 
+                         ventas=ventas, 
+                         total_ingresos=total_ingresos, 
+                         total_ventas=total_ventas, 
+                         ventas_pendientes=ventas_pendientes, 
+                         incremento=incremento, 
+                         form=form, 
+                         productos=productos, 
+                         clientes=clientes,  # Agregamos la lista de clientes
+                         show_back_button=True)
 
-    return render_template('ventas.html', ventas=ventas, total_ingresos=total_ingresos, total_ventas=total_ventas, ventas_pendientes=ventas_pendientes, incremento=incremento, form=form, productos=productos, cliente=cliente, show_back_button=True)
-
-@app.route('/ventas/<int:venta_id>')
-@login_required
-def ver_detalle_venta(venta_id):
-        venta = Venta.query.get_or_404(venta_id)
-        return render_template('detalle_venta.html', venta=venta)
-
-@app.route('/ventas/editar/<int:venta_id>', methods=['GET', 'POST'])
+@app.route('/ventas/editar/<int:venta_id>', methods=['POST'])
 @login_required
 def editar_venta(venta_id):
     venta = Venta.query.get_or_404(venta_id)
     if request.method == 'POST':
-        # Actualizar la venta con los datos del formulario
-        venta.cliente_id = request.form.get('cliente_id')
-        venta.total = request.form.get('total')
-        db.session.commit()
-        flash('Venta actualizada exitosamente', 'success')
+        try:
+            nuevo_estado = request.form.get('estado')
+            estado_anterior = venta.estado
+            
+            # Actualizar la venta con los datos del formulario
+            venta.cliente_id = request.form.get('cliente_id')
+            venta.producto_id = request.form.get('producto_id')
+            venta.total = request.form.get('total')
+            venta.estado = nuevo_estado
+            
+            # Manejar el stock según el cambio de estado
+            producto = Producto.query.get(venta.producto_id)
+            if producto:
+                # Si la venta pasa a completada
+                if nuevo_estado == 'completado' and estado_anterior != 'completado':
+                    if producto.stock > 0:
+                        producto.stock -= 1
+                    else:
+                        raise ValueError('No hay stock disponible para este producto')
+                # Si la venta deja de estar completada
+                elif estado_anterior == 'completado' and nuevo_estado != 'completado':
+                    producto.stock += 1
+            
+            db.session.commit()
+            flash('Venta actualizada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar la venta: {str(e)}', 'error')
+        
         return redirect(url_for('ventas'))
-    return render_template('editar_venta.html', venta=venta)
+    
+    return redirect(url_for('ventas'))
 
 @app.route('/ventas/eliminar/<int:venta_id>', methods=['POST'])
 @login_required
 def eliminar_venta(venta_id):
     venta = Venta.query.get_or_404(venta_id)
-    db.session.delete(venta)
-    db.session.commit()
-    flash('Venta eliminada exitosamente', 'success')
+    try:
+        db.session.delete(venta)
+        db.session.commit()
+        flash('Venta eliminada exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la venta: {str(e)}', 'error')
+    
     return redirect(url_for('ventas'))
 
 @app.route('/productos')
@@ -762,41 +953,30 @@ def proveedores():
     proveedores = Proveedor.query.all()  # Obtener todos los proveedores
     return render_template('proveedores.html', proveedores=proveedores, show_back_button=True)
 
-@app.route('/proveedores/editar/<int:proveedor_id>', methods=['GET', 'POST'])
+@app.route('/proveedores/editar/<int:proveedor_id>', methods=['POST'])
 @login_required
 def editar_proveedor(proveedor_id):
-    proveedor = Proveedor.query.get(proveedor_id)
+    proveedor = Proveedor.query.get_or_404(proveedor_id)
+    
     if request.method == 'POST':
-        # Lógica para actualizar el proveedor
-        proveedor.nombre = request.form.get('provider_name')
-        proveedor.contacto = request.form.get('provider_contact')
-        proveedor.email = request.form.get('provider_email')
-        proveedor.telefono = request.form.get('provider_phone')
-        proveedor.direccion = request.form.get('provider_address')
-        proveedor.descripcion = request.form.get('provider_description')
-
         try:
+            # Actualizar datos del proveedor
+            proveedor.nombre = request.form.get('provider_name')
+            proveedor.contacto = request.form.get('provider_contact')
+            proveedor.email = request.form.get('provider_email')
+            proveedor.telefono = request.form.get('provider_phone')
+            proveedor.direccion = request.form.get('provider_address')
+            proveedor.descripcion = request.form.get('provider_description')
+            
             db.session.commit()
             flash('Proveedor actualizado exitosamente.', 'success')
         except Exception as e:
             db.session.rollback()
             flash(f'Error al actualizar proveedor: {str(e)}', 'error')
-        proveedor.nombre = request.form.get('provider_name')
-        proveedor.contacto = request.form.get('provider_contact')
-        proveedor.email = request.form.get('provider_email')
-        proveedor.telefono = request.form.get('provider_phone')
-        proveedor.direccion = request.form.get('provider_address')
-        db.session.commit()
-        proveedor.descripcion = request.form.get('provider_description')
-        try:
-            db.session.commit()
-            flash('Proveedor actualizado exitosamente.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al actualizar proveedor: {str(e)}', 'error')
+        
         return redirect(url_for('proveedores'))
-
-    return render_template('editar_proveedor.html', proveedor=proveedor, show_back_button=True)
+    
+    return redirect(url_for('proveedores'))
 
 @app.route('/get_proveedor_details/<int:proveedor_id>')
 @login_required
@@ -835,6 +1015,45 @@ def get_previous_page():
     # Devuelve la URL de la página anterior desde la sesión de Flask
     return jsonify({'previous_page': session.get('previous_page')})
 
+@app.route('/cambiar_password', methods=['POST'])
+@login_required
+def cambiar_password():
+    try:
+        # Obtener datos del formulario
+        password_actual = request.form.get('password_actual')
+        password_nuevo = request.form.get('password_nuevo')
+        password_confirmar = request.form.get('password_confirmar')
+
+        # Obtener el usuario actual
+        user = User.query.get(session['user_id'])
+
+        # Verificar que la contraseña actual sea correcta
+        if not user.check_password(password_actual):
+            flash('La contraseña actual es incorrecta', 'error')
+            return redirect(url_for('perfil'))
+
+        # Verificar que las contraseñas nuevas coincidan
+        if password_nuevo != password_confirmar:
+            flash('Las contraseñas nuevas no coinciden', 'error')
+            return redirect(url_for('perfil'))
+
+        # Verificar que la contraseña nueva tenga al menos 8 caracteres
+        if len(password_nuevo) < 8:
+            flash('La contraseña nueva debe tener al menos 8 caracteres', 'error')
+            return redirect(url_for('perfil'))
+
+        # Actualizar la contraseña
+        user.set_password(password_nuevo)
+        db.session.commit()
+
+        flash('Contraseña actualizada exitosamente', 'success')
+        return redirect(url_for('perfil'))
+
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al actualizar la contraseña', 'error')
+        logging.error(f'Error al cambiar contraseña: {str(e)}')
+        return redirect(url_for('perfil'))
 
 if __name__ == '__main__':
      with app.app_context():

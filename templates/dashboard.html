@@ -351,13 +351,14 @@
             <p class="main-subtitle">Bienvenido al panel de administración de VcBikes</p>
         </div>
         
+        <!-- Estadísticas Principales -->
         <div class="dashboard-stats">
             <div class="stat-card">
                 <div class="stat-icon" style="background-color: #0d6efd;">
                     <i class="fas fa-motorcycle"></i>
                 </div>
                 <h3 class="stat-title">Productos</h3>
-                <div class="stat-value">120</div>
+                <div class="stat-value">{{ total_productos }}</div>
                 <p class="stat-description">Total de productos en inventario</p>
             </div>
             
@@ -365,9 +366,27 @@
                 <div class="stat-icon" style="background-color: #198754;">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
-                <h3 class="stat-title">Ventas</h3>
-                <div class="stat-value">24</div>
+                <h3 class="stat-title">Ventas del Mes</h3>
+                <div class="stat-value">{{ ventas_mes }}</div>
                 <p class="stat-description">Ventas realizadas este mes</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #20c997;">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <h3 class="stat-title">Ingresos Mensuales</h3>
+                <div class="stat-value">${{ '{:,.2f}'.format(ingresos_mes) }}</div>
+                <p class="stat-description">Ingresos del mes actual</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #6f42c1;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="stat-title">Promedio de Venta</h3>
+                <div class="stat-value">${{ '{:,.2f}'.format(promedio_venta) }}</div>
+                <p class="stat-description">Valor promedio por venta</p>
             </div>
             
             <div class="stat-card">
@@ -375,20 +394,108 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <h3 class="stat-title">Clientes</h3>
-                <div class="stat-value">36</div>
-                <p class="stat-description">Clientes registrados</p>
+                <div class="stat-value">{{ total_clientes }}</div>
+                <p class="stat-description">Total de clientes registrados</p>
             </div>
             
             <div class="stat-card">
                 <div class="stat-icon" style="background-color: #dc3545;">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h3 class="stat-title">Alertas</h3>
-                <div class="stat-value">5</div>
+                <h3 class="stat-title">Stock Bajo</h3>
+                <div class="stat-value">{{ productos_bajo_stock }}</div>
                 <p class="stat-description">Productos con bajo stock</p>
             </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #0dcaf0;">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h3 class="stat-title">Proveedores</h3>
+                <div class="stat-value">{{ total_proveedores }}</div>
+                <p class="stat-description">Total de proveedores activos</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #fd7e14;">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h3 class="stat-title">Empleados</h3>
+                <div class="stat-value">{{ total_empleados }}</div>
+                <p class="stat-description">Total de empleados activos</p>
+            </div>
         </div>
-        
+
+        <!-- Productos Más Vendidos -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-star"></i> Productos Más Vendidos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Total Ventas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for producto in productos_mas_vendidos %}
+                                    <tr>
+                                        <td>{{ producto.nombre }}</td>
+                                        <td>{{ producto.total_ventas }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-pie"></i> Categorías Más Populares</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th>Total Productos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for categoria in categorias_populares %}
+                                    <tr>
+                                        <td>{{ categoria.nombre }}</td>
+                                        <td>{{ categoria.total_productos }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <h2>Acciones Rápidas</h2>
         <div class="cards">
             <div class="card">
