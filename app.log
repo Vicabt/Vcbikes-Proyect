@@ -6055,3 +6055,101 @@
 2025-03-09 10:11:28,052 - INFO - 127.0.0.1 - - [09/Mar/2025 10:11:28] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
 2025-03-09 10:11:28,337 - INFO - 127.0.0.1 - - [09/Mar/2025 10:11:28] "[36mGET /static/img/moto_index.webp HTTP/1.1[0m" 304 -
 2025-03-09 10:14:00,382 - INFO - 127.0.0.1 - - [09/Mar/2025 10:14:00] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:05:22,646 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-09 13:05:22,701 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-09 13:05:22,701 - INFO - [33mPress CTRL+C to quit[0m
+2025-03-09 13:05:22,702 - INFO -  * Restarting with stat
+2025-03-09 13:05:23,496 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-09 13:05:23,522 - WARNING -  * Debugger is active!
+2025-03-09 13:05:23,566 - INFO -  * Debugger PIN: 132-016-705
+2025-03-09 13:05:41,920 - INFO - 127.0.0.1 - - [09/Mar/2025 13:05:41] "GET / HTTP/1.1" 200 -
+2025-03-09 13:05:41,986 - INFO - 127.0.0.1 - - [09/Mar/2025 13:05:41] "GET /static/css/styles.css HTTP/1.1" 200 -
+2025-03-09 13:05:42,115 - INFO - 127.0.0.1 - - [09/Mar/2025 13:05:42] "GET /static/img/logo.png HTTP/1.1" 200 -
+2025-03-09 13:05:42,304 - INFO - 127.0.0.1 - - [09/Mar/2025 13:05:42] "GET /static/img/moto_index.webp HTTP/1.1" 200 -
+2025-03-09 13:06:02,107 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:02] "GET /nosotros HTTP/1.1" 200 -
+2025-03-09 13:06:02,219 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:02] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:02,370 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:02] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:02,453 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:02] "[36mGET /static/img/moto_index.webp HTTP/1.1[0m" 304 -
+2025-03-09 13:06:06,443 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:06] "GET /contacto HTTP/1.1" 200 -
+2025-03-09 13:06:06,749 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:06] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:06,783 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:06] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:10,643 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:10] "GET /registro HTTP/1.1" 200 -
+2025-03-09 13:06:10,697 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:10] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:10,888 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:10] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:13,664 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:13] "GET /login HTTP/1.1" 200 -
+2025-03-09 13:06:13,923 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:13] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:13,990 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:13] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:19,687 - DEBUG - Intento de inicio de sesión para el usuario: vicab
+2025-03-09 13:06:19,976 - WARNING - Fallo en el inicio de sesión para el usuario: vicab
+2025-03-09 13:06:19,979 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:19] "POST /login HTTP/1.1" 200 -
+2025-03-09 13:06:20,000 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:20] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:20,001 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:20] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:28,967 - DEBUG - Intento de inicio de sesión para el usuario: vicab
+2025-03-09 13:06:29,267 - INFO - Usuario vicab ha iniciado sesión exitosamente.
+2025-03-09 13:06:29,305 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:29] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-03-09 13:06:29,313 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:29,424 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:29] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:06:29,440 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:29] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:29,750 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:29] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:36,660 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:36,681 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:36] "GET /categorias HTTP/1.1" 200 -
+2025-03-09 13:06:36,968 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:36] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:41,936 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:41] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:06:42,186 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:42,225 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:42] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:06:42,257 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:42] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:42,573 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:42] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:43,551 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:43,591 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:43] "GET /subcategorias HTTP/1.1" 200 -
+2025-03-09 13:06:43,864 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:43] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:51,567 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:51] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:06:51,828 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:51,863 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:51] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:06:51,888 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:51] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:52,206 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:52] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:06:54,534 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:06:54,577 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:54] "GET /productos HTTP/1.1" 200 -
+2025-03-09 13:06:54,854 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:54] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:06:54,915 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:54] "GET /static/uploads/250NK_Fun.jpeg HTTP/1.1" 200 -
+2025-03-09 13:06:54,917 - INFO - 127.0.0.1 - - [09/Mar/2025 13:06:54] "GET /static/uploads/450MT.jpeg HTTP/1.1" 200 -
+2025-03-09 13:07:07,119 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:07] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:07:07,385 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:07,419 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:07] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:07:07,441 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:07] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:07,752 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:07] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:07:10,098 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:10,117 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:10] "GET /proveedores HTTP/1.1" 200 -
+2025-03-09 13:07:10,412 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:10] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:13,575 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:13] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:07:13,819 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:13,857 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:13] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:07:13,912 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:13] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:14,187 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:14] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:07:15,465 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:15,484 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:15] "GET /empleados HTTP/1.1" 200 -
+2025-03-09 13:07:15,779 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:15] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:18,670 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:18] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:07:18,927 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:18,965 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:18] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:07:18,989 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:18] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:19,304 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:19] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:07:21,384 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:21,464 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:21] "GET /ventas HTTP/1.1" 200 -
+2025-03-09 13:07:21,486 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:21] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:35,202 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:35] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:07:35,526 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:35,561 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:35] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:07:35,584 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:35] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:35,784 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:35] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:07:38,134 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:38,195 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:38] "GET /perfil HTTP/1.1" 200 -
+2025-03-09 13:07:38,229 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:38] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:45,479 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:45] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-09 13:07:45,800 - INFO - Acceso permitido a la ruta protegida.
+2025-03-09 13:07:45,834 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:45] "GET /dashboard HTTP/1.1" 200 -
+2025-03-09 13:07:45,853 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:45] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:07:46,067 - INFO - 127.0.0.1 - - [09/Mar/2025 13:07:46] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-09 13:08:08,701 - INFO - 127.0.0.1 - - [09/Mar/2025 13:08:08] "GET /login HTTP/1.1" 200 -
+2025-03-09 13:08:08,775 - INFO - 127.0.0.1 - - [09/Mar/2025 13:08:08] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-09 13:08:08,960 - INFO - 127.0.0.1 - - [09/Mar/2025 13:08:08] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
