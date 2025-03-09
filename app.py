@@ -201,30 +201,33 @@ def categorias():
     categorias = Categoria.query.all()
     return render_template('categorias.html', categories=categorias, show_back_button=True)
 
-@app.route('/categorias/editar/<int:category_id>', methods=['GET', 'POST'])
+@app.route('/categorias/editar', methods=['POST'])
 @login_required
-def editar_categoria(category_id):
+def editar_categoria():
+    if not request.is_json:
+        return jsonify({'error': 'La solicitud debe ser JSON'}), 400
+
+    data = request.get_json()
+    category_id = data.get('category_id')
+    category_name = data.get('category_name')
+    category_description = data.get('category_description')
+
+    if not category_id:
+        return jsonify({'error': 'ID de categoría no válido'}), 400
+
     categoria = Categoria.query.get_or_404(category_id)
 
-    if request.method == 'POST':
-        categoria.nombre = request.form.get('category_name')
-        categoria.descripcion = request.form.get('category_description')
+    if not category_name:
+        return jsonify({'error': 'El nombre de la categoría es obligatorio'}), 400
 
-        # Validación básica
-        if not categoria.nombre:
-            flash('El nombre de la categoría es obligatorio.', 'error')
-            return redirect(url_for('editar_categoria', category_id=category_id))
-
-        try:
-            db.session.commit()
-            flash('Categoría actualizada con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al actualizar la categoría: {str(e)}', 'error')
-
-        return redirect(url_for('categorias'))
-
-    return render_template('editar_categoria.html', category=categoria, show_back_button=True)
+    try:
+        categoria.nombre = category_name
+        categoria.descripcion = category_description
+        db.session.commit()
+        return jsonify({'message': 'Categoría actualizada con éxito'}), 200  # Devuelve JSON
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Error al actualizar la categoría: {str(e)}'}), 500
 
 @app.route('/categorias/eliminar/<int:category_id>', methods=['POST'])
 @login_required

@@ -68,13 +68,15 @@
     
     .btn-edit, .btn-delete {
         border: none;
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 1rem; /* Mantén el padding para un buen espaciado */
         border-radius: 5px;
         cursor: pointer;
         font-weight: 500;
         transition: background-color 0.3s ease;
+        min-width: 100px; /* Ancho mínimo para ambos botones */
+        height: 38px; /* Altura uniforme para ambos botones */
     }
-    
+
     .btn-edit {
         background-color: #0d6efd;
         color: white;
@@ -92,6 +94,54 @@
     .btn-delete:hover {
         background-color: #bb2d3b;
     }
+
+    /* Estilos para el modal */
+    .modal-content {
+        border-radius: 10px; /* Bordes redondeados */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra más suave */
+    }
+
+    .modal-header {
+        background-color: #0d6efd; /* Color de fondo del encabezado */
+        color: white; /* Color del texto */
+        border-top-left-radius: 10px; /* Bordes redondeados */
+        border-top-right-radius: 10px; /* Bordes redondeados */
+        padding: 1rem; /* Aumentar el espaciado en el encabezado */
+    }
+
+    .modal-body {
+        padding: 2rem; /* Espaciado interno */
+    }
+
+    .form-label {
+        font-weight: bold; /* Negrita para las etiquetas */
+        margin-bottom: 1rem; /* Aumentar el espaciado inferior */
+    }
+
+    .form-control {
+        border-radius: 5px; /* Bordes redondeados para los campos de entrada */
+        border: 1px solid #ced4da; /* Color del borde */
+        box-shadow: none; /* Sin sombra */
+        width: 100%; /* Asegurarse de que los campos ocupen todo el ancho disponible */
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd; /* Color del borde al enfocar */
+        box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); /* Sombra al enfocar */
+    }
+
+    .modal-footer {
+        justify-content: space-between; /* Espaciado entre botones */
+        padding: 1rem; /* Aumentar el espaciado en el pie del modal */
+    }
+
+    .btn {
+        border-radius: 5px; /* Bordes redondeados para los botones */
+    }
+
+    .mb-3 {
+    margin-bottom: 1.5rem; /* Aumentar el espaciado entre los campos */
+    }
     
     @media (max-width: 768px) {
         .categories-container {
@@ -106,6 +156,8 @@
             grid-template-columns: 1fr;
         }
     }
+
+
 </style>
 {% endblock %}
 
@@ -146,25 +198,91 @@
     </div>
 
     <h2>Categorías Existentes</h2>
-    <div class="categories-list">
-        {% for category in categories %}
-        <div class="category-item">
-            <h2>{{ category.nombre }}</h2>
-            <p>{{ category.description }}</p>
-            <div class="category-actions">
-                <a href="{{ url_for('editar_categoria', category_id=category.id) }}" class="btn btn-edit">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-                <form method="POST" action="{{ url_for('eliminar_categoria', category_id=category.id) }}"
-                      style="display: inline;">
-                    <button type="submit" class="btn btn-delete"
-                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta categoría?')">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </form>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if categories %}
+                            {% for category in categories %}
+                            <tr>
+                                <td>{{ category.nombre }}</td>
+                                <td>{{ category.descripcion }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary btn-edit"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editCategoryModal"
+                                            data-id="{{ category.id }}"
+                                            title="Editar"
+                                            aria-label="Editar categoría {{ category.nombre }}">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                        <form method="POST" action="{{ url_for('eliminar_categoria', category_id=category.id) }}" style="display: inline;">
+                                            <button
+                                                type="submit"
+                                                class="btn btn-outline-danger btn-delete"
+                                                title="Eliminar"
+                                                aria-label="Eliminar categoría {{ category.nombre }}"
+                                                onclick="return confirm('¿Estás seguro de que deseas eliminar esta categoría?')">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="3" class="text-center">No hay categorías disponibles.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        {% endfor %}
+    </div>
+
+    <!-- Modal para editar categoría -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Editar Categoría</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryForm" method="POST" action="{{ url_for('editar_categoria') }}"> <!-- CORREGIDO -->
+                        <input type="hidden" id="editCategoryId" name="category_id" value="">
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-box"></i></span>
+                                <label for="editCategoryName" class="form-label">Categoría</label>
+                                <input type="text" class="form-control" id="editCategoryName" name="category_name" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                                <label for="editCategoryDescription" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="editCategoryDescription" name="category_description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -172,39 +290,72 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const deleteButtons = document.querySelectorAll('.btn-delete');
-        
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Obtener el nombre de la categoría desde el título
-                const categoryTitle = this.closest('.category-item').querySelector('h2').textContent;
-                
-                if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${categoryTitle}"?`)) {
-                    // Aquí iría la lógica para eliminar la categoría
-                    console.log(`Categoría "${categoryTitle}" eliminada`);
-                    // Efecto visual temporal (en producción se haría una petición AJAX)
-                    this.closest('.category-item').style.opacity = '0.5';
-                }
-            });
-        });
-        
-        const editButtons = document.querySelectorAll('.btn-edit');
-        
-        editButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Obtener el nombre de la categoría desde el título
-                const categoryItem = this.closest('.category-item');
-                const categoryTitle = categoryItem.querySelector('h2').textContent;
-                const categoryDescription = categoryItem.querySelector('p').textContent;
-                
-                // Rellenar el formulario con los datos de la categoría
-                document.getElementById('category_name').value = categoryTitle;
-                document.getElementById('category_description').value = categoryDescription;
-                
-                // Hacer scroll hasta el formulario
-                document.querySelector('.category-form').scrollIntoView({ behavior: 'smooth' });
-            });
+    const editButtons = document.querySelectorAll('.btn-edit');
+
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.dataset.id;
+            const categoryName = this.closest('tr').querySelector('td:nth-child(1)').textContent;
+            const categoryDescription = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+
+            // Set values in the modal
+            document.getElementById('editCategoryId').value = categoryId;
+            document.getElementById('editCategoryName').value = categoryName;
+            document.getElementById('editCategoryDescription').value = categoryDescription;
+
+            // Show the modal (Usando la API de Bootstrap)
+            const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+            modal.show();
         });
     });
+
+    // Capturar el evento submit del formulario
+    const editCategoryForm = document.getElementById('editCategoryForm');
+    editCategoryForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevenir el envío por defecto
+
+        // Recopilar los datos del formulario
+        const categoryId = document.getElementById('editCategoryId').value;
+        const categoryName = document.getElementById('editCategoryName').value;
+        const categoryDescription = document.getElementById('editCategoryDescription').value;
+
+        // Crear un objeto con los datos
+        const data = {
+            category_id: categoryId,
+            category_name: categoryName,
+            category_description: categoryDescription
+        };
+
+        // Enviar los datos con AJAX (Fetch API)
+        fetch('/categorias/editar', {  //  tu ruta
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'  // Importantísimo
+            },
+            body: JSON.stringify(data)  //  Convierte el objeto a JSON
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();  // o response.text() si el servidor no devuelve JSON
+        })
+        .then(data => {
+            // Procesar la respuesta del servidor (opcional)
+            console.log('Success:', data);
+
+            // Cerrar el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCategoryModal'));
+            modal.hide();
+
+            // Actualizar la tabla (recargar la página o actualizar la fila)
+            location.reload(); //  simple, pero puedes ser más específico
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Manejar el error (mostrar un mensaje al usuario, etc.)
+        });
+    });
+});
 </script>
 {% endblock %}
