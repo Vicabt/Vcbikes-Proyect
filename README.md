@@ -12,8 +12,4 @@ Este proyecto es una aplicación web para la gestión de inventarios, empleados,
 - CSS
 - JavaScript
 
-<<<<<<< HEAD
 ![preview](static/img/screenshot.png)
-=======
-![preview](static/img/screenshot.png)
->>>>>>> 6f07bd49dd7e2fe5a699ea9ce8ecdf79de2c83fa
