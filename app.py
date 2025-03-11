@@ -169,61 +169,63 @@ def recuperar_password():
 @login_required
 def dashboard():
     try:
-        # Estadísticas básicas
-        total_productos = Producto.query.count()
-        total_clientes = Cliente.query.count()
+        # Estadísticas básicas - solo contar registros activos (estado=0)
+        total_productos = Producto.query.filter_by(estado=0).count()
+        total_clientes = Cliente.query.filter_by(estado=0).count()
         
         # Estadísticas de ventas
         hoy = datetime.now()
         primer_dia_mes = datetime(hoy.year, hoy.month, 1)
         
-        # Ventas del mes
-        ventas_mes = Venta.query.filter(Venta.fecha >= primer_dia_mes).count()
+        # Ventas del mes - solo ventas activas
+        ventas_mes = Venta.query.filter(Venta.fecha >= primer_dia_mes, Venta.estado_registro==0).count()
         
-        # Ingresos del mes actual
+        # Ingresos del mes actual - solo ventas activas
         ingresos_mes = db.session.query(db.func.sum(Venta.total))\
-            .filter(Venta.fecha >= primer_dia_mes)\
+            .filter(Venta.fecha >= primer_dia_mes, Venta.estado_registro==0)\
             .scalar() or 0
         ingresos_mes = round(float(ingresos_mes), 2)
         
-        # Total histórico de ingresos
-        total_ingresos = db.session.query(db.func.sum(Venta.total)).scalar() or 0
+        # Total histórico de ingresos - solo ventas activas
+        total_ingresos = db.session.query(db.func.sum(Venta.total)).filter(Venta.estado_registro==0).scalar() or 0
         total_ingresos = round(float(total_ingresos), 2)
         
-        # Productos con stock bajo (menos de 5 unidades)
+        # Productos con stock bajo (menos de 5 unidades) - solo productos activos
         umbral_stock_bajo = 5
-        productos_bajo_stock = Producto.query.filter(Producto.stock <= umbral_stock_bajo).count()
+        productos_bajo_stock = Producto.query.filter(Producto.stock <= umbral_stock_bajo, Producto.estado==0).count()
         
-        # Productos más vendidos (top 5)
+        # Productos más vendidos (top 5) - solo productos y ventas activos
         productos_mas_vendidos = db.session.query(
             Producto.nombre,
             db.func.count(Venta.id).label('total_ventas')
         ).join(Venta)\
+         .filter(Producto.estado==0, Venta.estado_registro==0)\
          .group_by(Producto.id)\
          .order_by(db.text('total_ventas DESC'))\
          .limit(5)\
          .all()
         
-        # Categorías más populares
+        # Categorías más populares - solo categorías y productos activos
         categorias_populares = db.session.query(
             Categoria.nombre,
             db.func.count(Producto.id).label('total_productos')
         ).join(Producto)\
+         .filter(Categoria.estado==0, Producto.estado==0)\
          .group_by(Categoria.id)\
          .order_by(db.text('total_productos DESC'))\
          .limit(5)\
          .all()
         
-        # Total de proveedores
-        total_proveedores = Proveedor.query.count()
+        # Total de proveedores - solo proveedores activos
+        total_proveedores = Proveedor.query.filter_by(estado=0).count()
         
-        # Total de empleados
-        total_empleados = Empleado.query.count()
+        # Total de empleados - solo empleados activos
+        total_empleados = Empleado.query.filter_by(estado=0).count()
         
-        # Promedio de venta por cliente
+        # Promedio de venta por cliente - solo ventas activas
         promedio_venta = db.session.query(
             db.func.avg(Venta.total)
-        ).scalar() or 0
+        ).filter(Venta.estado_registro==0).scalar() or 0
         promedio_venta = round(float(promedio_venta), 2)
         
         return render_template('dashboard.html',
@@ -262,32 +264,8 @@ def dashboard():
 @login_required
 def categorias():
     session['previous_page'] = url_for('dashboard')
-    if request.method == 'POST':
-        nombre = request.form.get('category_name')
-        descripcion = request.form.get('category_description')
-
-        # Validación básica
-        if not nombre:
-            flash('El nombre de la categoría es obligatorio.', 'error')
-            return redirect(url_for('categorias'))
-
-        try:
-            # Crear nueva categoría
-            nueva_categoria = Categoria(
-                nombre=nombre,
-                descripcion=descripcion
-            )
-            db.session.add(nueva_categoria)
-            db.session.commit()
-            flash('Categoría agregada con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al agregar la categoría: {str(e)}', 'error')
-
-        return redirect(url_for('categorias'))
-
-    # Obtener todas las categorías de la base de datos
-    categorias = Categoria.query.all()
+    # Solo mostrar categorías activas (estado=0)
+    categorias = Categoria.query.filter_by(estado=0).all()
     return render_template('categorias.html', categories=categorias, show_back_button=True)
 
 @app.route('/categorias/editar', methods=['POST'])
@@ -323,7 +301,8 @@ def editar_categoria():
 def eliminar_categoria(category_id):
     categoria = Categoria.query.get_or_404(category_id)
     try:
-        db.session.delete(categoria)
+        # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+        categoria.estado = 1
         db.session.commit()
         flash('Categoría eliminada con éxito!', 'success')
     except Exception as e:
@@ -336,38 +315,16 @@ def eliminar_categoria(category_id):
 @login_required
 def subcategorias():
     session['previous_page'] = url_for('dashboard')
-    categorias = Categoria.query.all()
-    
-    if request.method == 'POST':
-        # Obtener datos del formulario
-        parent_category = request.form.get('parent_category')
-        subcategory_name = request.form.get('subcategory_name')
-        subcategory_description = request.form.get('subcategory_description')
-        
-        # Crear nueva subcategoría
-        nueva_subcategoria = Subcategoria(
-            nombre=subcategory_name,
-            descripcion=subcategory_description,
-            categoria_id=parent_category
-        )
-        
-        try:
-            db.session.add(nueva_subcategoria)
-            db.session.commit()
-            flash('Subcategoría agregada con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al agregar la subcategoría: {str(e)}', 'error')
-        
-        return redirect(url_for('subcategorias'))
-    
-    subcategorias = Subcategoria.query.all()
+    # Solo mostrar categorías y subcategorías activas (estado=0)
+    categorias = Categoria.query.filter_by(estado=0).all()
+    subcategorias = Subcategoria.query.filter_by(estado=0).all()
     return render_template('subcategorias.html', categorias=categorias, subcategorias=subcategorias, show_back_button=True)
 
 @app.route('/get_subcategorias/<int:categoria_id>')
 @login_required
 def get_subcategorias(categoria_id):
-    subcategorias = Subcategoria.query.filter_by(categoria_id=categoria_id).all()
+    # Solo mostrar subcategorías activas (estado=0)
+    subcategorias = Subcategoria.query.filter_by(categoria_id=categoria_id, estado=0).all()
     subcategorias_dict = [{'id': sub.id, 'nombre': sub.nombre} for sub in subcategorias]
     return jsonify(subcategorias_dict)
 
@@ -402,7 +359,8 @@ def actualizar_subcategoria(subcategory_id):
 def eliminar_subcategoria(subcategory_id):
     subcategoria = Subcategoria.query.get_or_404(subcategory_id)
     try:
-        db.session.delete(subcategoria)
+        # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+        subcategoria.estado = 1
         db.session.commit()
         flash('Subcategoría eliminada correctamente', 'success')
     except Exception as e:
@@ -422,46 +380,8 @@ from datetime import datetime
 @login_required
 def empleados():
     session['previous_page'] = url_for('dashboard')
-    if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        cargo = request.form.get('cargo')
-        email = request.form.get('email')
-        telefono = request.form.get('telefono')
-        documento_identidad = request.form.get('employeeDocument')
-        direccion = request.form.get('direccion')
-        fecha_contratacion_str = request.form.get('contratacion')
-        activo = request.form.get('employeeActive') == 'on'  # Verifica si el checkbox está marcado
-
-        # Validación (¡MUY IMPORTANTE!)
-        if not nombre or not cargo or not email:
-            flash('Todos los campos son obligatorios.', 'error')
-            return redirect(url_for('empleados'))
-
-        try:
-            # Convierte la fecha de contratación a un objeto datetime.date
-            fecha_contratacion = datetime.strptime(fecha_contratacion_str, '%Y-%m-%d').date()
-
-            nuevo_empleado = Empleado(
-                nombre=nombre,
-                cargo=cargo,
-                email=email,
-                telefono=telefono,
-                documento_identidad=documento_identidad,
-                direccion=direccion,
-                fecha_contratacion=fecha_contratacion,
-                activo=activo
-            )
-            db.session.add(nuevo_empleado)
-            db.session.commit()
-            flash('Empleado agregado con éxito!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al agregar el empleado: {str(e)}', 'error')
-
-        return redirect(url_for('empleados'))
-
-    # Obtener todos los empleados de la base de datos
-    empleados = Empleado.query.all()
+    # Solo mostrar empleados activos (estado=0)
+    empleados = Empleado.query.filter_by(estado=0).all()
     return render_template('empleados.html', empleados=empleados, show_back_button=True)
 
 @app.route('/empleados/editar/<int:empleado_id>', methods=['GET', 'POST'])
@@ -503,7 +423,8 @@ def editar_empleado(empleado_id):
 def eliminar_empleado(empleado_id):
     empleado = Empleado.query.get_or_404(empleado_id)
     try:
-        db.session.delete(empleado)
+        # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+        empleado.estado = 1
         db.session.commit()
         flash('Empleado eliminado con éxito!', 'success')
     except Exception as e:
@@ -537,12 +458,14 @@ def get_employee_details(empleado_id):
 @app.route('/clientes', methods=['GET', 'POST'])
 @login_required
 def clientes():
-    form = ClienteForm()  # Crear una instancia del formulario
-    clientes = Cliente.query.all()
+    session['previous_page'] = url_for('dashboard')
+    # Crear una instancia del formulario para CSRF token
+    form = ClienteForm()
+    
     if form.validate_on_submit():  # Si el formulario se envía y es válido
         if Cliente.query.filter_by(email=form.email.data).first():
             flash('El email ya está registrado.', 'error')
-            return render_template('clientes.html', form=form, clientes=clientes, show_back_button=True)
+            return redirect(url_for('clientes'))
 
         nuevo_cliente = Cliente(
             nombre=form.nombre.data,
@@ -555,7 +478,9 @@ def clientes():
         db.session.commit()
         flash('Cliente agregado con éxito!', 'success')
         return redirect(url_for('clientes'))
-
+    
+    # Solo mostrar clientes activos (estado=0)
+    clientes = Cliente.query.filter_by(estado=0).all()
     return render_template('clientes.html', form=form, clientes=clientes, show_back_button=True)
 
 @app.route('/clientes/editar/<int:id>', methods=['POST'])
@@ -579,7 +504,8 @@ def editar_cliente(id):
 @login_required
 def eliminar_cliente(id):
     cliente = Cliente.query.get_or_404(id)
-    db.session.delete(cliente)
+    # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+    cliente.estado = 1
     db.session.commit()
     flash('Cliente eliminado con éxito!', 'success')
     return redirect(url_for('clientes'))
@@ -638,8 +564,8 @@ def ventas():
     session['previous_page'] = url_for('dashboard')
     form = NuevaVentaForm()
     
-    # Obtener todos los clientes para el selector
-    clientes = Cliente.query.all()
+    # Obtener todos los clientes activos para el selector
+    clientes = Cliente.query.filter_by(estado=0).all()
     
     if request.method == 'POST':
         try:
@@ -676,10 +602,11 @@ def ventas():
         return redirect(url_for('ventas'))
 
     # Si es un GET, mostrar la página de ventas
-    ventas = Venta.query.all()  # Recuperar todas las ventas
-    # Recuperar categorías y productos
-    categorias = Categoria.query.all()  
-    productos = Producto.query.all()  
+    # Solo mostrar ventas activas (estado_registro=0)
+    ventas = Venta.query.filter_by(estado_registro=0).all()
+    # Recuperar categorías y productos activos
+    categorias = Categoria.query.filter_by(estado=0).all()
+    productos = Producto.query.filter_by(estado=0).all()
 
     # Calcular estadísticas
     total_ingresos = sum(venta.total for venta in ventas)
@@ -757,7 +684,8 @@ def editar_venta(venta_id):
 def eliminar_venta(venta_id):
     venta = Venta.query.get_or_404(venta_id)
     try:
-        db.session.delete(venta)
+        # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+        venta.estado_registro = 1
         db.session.commit()
         flash('Venta eliminada exitosamente', 'success')
     except Exception as e:
@@ -770,23 +698,14 @@ def eliminar_venta(venta_id):
 @login_required
 def productos():
     session['previous_page'] = url_for('dashboard')
-    productos = Producto.query.all()
-    categorias = Categoria.query.all()
-    subcategorias = Subcategoria.query.all()
-    proveedores = Proveedor.query.all()
-
-    # Manejo de errores: verificar si hay datos
-    if not productos and not categorias and not subcategorias and not proveedores:
-        return render_template('productos.html', message='No hay productos, categorías, subcategorías o proveedores disponibles.')
-
-    form = ProductoForm()  # Create form instance for CSRF token
-    return render_template('productos.html', 
-                    productos=productos,
-                    categorias=categorias,
-                    subcategorias=subcategorias,
-                    proveedores=proveedores,
-                    form=form,
-                    show_back_button=True)
+    # Crear una instancia del formulario para CSRF token
+    form = ProductoForm()
+    # Solo mostrar productos, categorías y subcategorías activos (estado=0)
+    productos = Producto.query.filter_by(estado=0).all()
+    categorias = Categoria.query.filter_by(estado=0).all()
+    subcategorias = Subcategoria.query.filter_by(estado=0).all()
+    proveedores = Proveedor.query.filter_by(estado=0).all()
+    return render_template('productos.html', form=form, productos=productos, categorias=categorias, subcategorias=subcategorias, proveedores=proveedores, show_back_button=True)
 
 @app.route('/productos/nuevo', methods=['GET', 'POST'])
 @login_required
@@ -883,7 +802,8 @@ def editar_producto(id):
 def eliminar_producto(id):
     producto = Producto.query.get_or_404(id)
     try:
-        db.session.delete(producto)
+        # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+        producto.estado = 1
         db.session.commit()
         flash('Producto eliminado exitosamente', 'success')
     except Exception as e:
@@ -916,41 +836,9 @@ def get_producto_details(id):
 @app.route('/proveedores', methods=['GET', 'POST'])
 @login_required
 def proveedores():
-    if request.method == 'POST':
-        nombre = request.form.get('provider_name')
-        contacto = request.form.get('provider_contact')
-        email = request.form.get('provider_email')
-        telefono = request.form.get('provider_phone')
-        direccion = request.form.get('provider_address')
-        descripcion = request.form.get('provider_description')
-
-        # Mensaje de depuración
-        print(f'Intentando agregar proveedor: {nombre}, {contacto}, {email}, {telefono}, {direccion}, {descripcion}')
-
-        # Verifica que el nombre no sea None o vacío
-        if not nombre:
-            flash('El nombre es obligatorio.', 'error')
-            return redirect(url_for('proveedores'))
-
-        nuevo_proveedor = Proveedor(
-            nombre=nombre,
-            contacto=contacto,
-            email=email,
-            telefono=telefono,
-            direccion=direccion,
-            descripcion=descripcion
-        )
-        try:
-            db.session.add(nuevo_proveedor)
-            db.session.commit()
-            flash('Proveedor agregado exitosamente.', 'success')
-        except Exception as e:
-            db.session.rollback()  # Deshacer la sesión en caso de error
-            flash(f'Error al agregar proveedor: {str(e)}', 'error')
-        
-        return redirect(url_for('proveedores'))
-
-    proveedores = Proveedor.query.all()  # Obtener todos los proveedores
+    session['previous_page'] = url_for('dashboard')
+    # Solo mostrar proveedores activos (estado=0)
+    proveedores = Proveedor.query.filter_by(estado=0).all()
     return render_template('proveedores.html', proveedores=proveedores, show_back_button=True)
 
 @app.route('/proveedores/editar/<int:proveedor_id>', methods=['POST'])
@@ -999,7 +887,8 @@ def get_proveedor_details(proveedor_id):
 def eliminar_proveedor(proveedor_id):
     proveedor = Proveedor.query.get(proveedor_id)
     if proveedor:
-       db.session.delete(proveedor)
+       # En lugar de eliminar, cambiamos el estado a 1 (eliminado)
+       proveedor.estado = 1
        db.session.commit()
        flash('Proveedor eliminado exitosamente.', 'success')
     else:
@@ -1054,6 +943,14 @@ def cambiar_password():
         flash('Error al actualizar la contraseña', 'error')
         logging.error(f'Error al cambiar contraseña: {str(e)}')
         return redirect(url_for('perfil'))
+
+@app.route('/get_proveedores')
+@login_required
+def get_proveedores():
+    # Solo mostrar proveedores activos (estado=0)
+    proveedores = Proveedor.query.filter_by(estado=0).all()
+    proveedores_list = [{'id': p.id, 'nombre': p.nombre} for p in proveedores]
+    return jsonify(proveedores_list)
 
 if __name__ == '__main__':
      with app.app_context():

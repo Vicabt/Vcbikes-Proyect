@@ -10,6 +10,7 @@ class Categoria(db.Model):
     descripcion = db.Column(db.Text)
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
     # Relación con productos
     productos = db.relationship('Producto', back_populates='categoria_parent', lazy=True, primaryjoin="Categoria.id == Producto.categoria_id")
     # Relación con subcategorías
@@ -27,6 +28,7 @@ class Cliente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     telefono = db.Column(db.String(20))
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
     # Relación con ventas
     ventas = db.relationship('Venta', backref='cliente', lazy=True)
 
@@ -42,6 +44,7 @@ class DetalleVenta(db.Model):
     producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'), nullable=False)
     subtotal = db.Column(db.Float, nullable=False)
     venta_id = db.Column(db.Integer, db.ForeignKey('venta.id'), nullable=False)
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def __repr__(self):
         return f"DetalleVenta(Venta: {self.venta_id}, Producto: {self.producto_id}, Cantidad: {self.cantidad})"
@@ -58,6 +61,7 @@ class Empleado(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     telefono = db.Column(db.String(20))
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def __repr__(self):
         return f"Empleado('{self.nombre}', '{self.cargo}', '{self.email}')"
@@ -79,6 +83,7 @@ class Producto(db.Model):
     subcategoria_parent = db.relationship('Subcategoria', back_populates='productos',  primaryjoin="Subcategoria.id == Producto.subcategoria_id")
     subcategoria_id = db.Column(db.Integer, db.ForeignKey('subcategoria.id'), nullable=True)
     categoria_parent = db.relationship('Categoria', back_populates='productos', primaryjoin="Categoria.id == Producto.categoria_id")
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def __repr__(self):
         return f"Producto('{self.nombre}', ${self.precio}, Stock: {self.stock})"
@@ -94,6 +99,7 @@ class Proveedor(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     productos = db.relationship('Producto', back_populates='proveedor', lazy=True)
     telefono = db.Column(db.String(20))
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def __repr__(self):
         return f"Proveedor('{self.nombre}')"
@@ -106,6 +112,7 @@ class Subcategoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     productos = db.relationship('Producto', back_populates='subcategoria_parent', lazy=True, primaryjoin="Subcategoria.id == Producto.subcategoria_id")
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def __repr__(self):
         return f"Subcategoria('{self.nombre}')"
@@ -119,6 +126,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)  # Guarda el hash de la contraseña
     telefono = db.Column(db.String(20))
     username = db.Column(db.String(20), unique=True, nullable=False)
+    estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -136,6 +144,7 @@ class Venta(db.Model):
     producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'))  # Asegúrate de que este campo exista
     total = db.Column(db.Float, nullable=False)
     estado = db.Column(db.String(20), default='pendiente')
+    estado_registro = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
     # Relación con Producto
     producto = db.relationship('Producto', backref='ventas')
