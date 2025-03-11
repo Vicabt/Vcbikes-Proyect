@@ -6506,3 +6506,137 @@
 2025-03-10 20:10:27,439 - INFO - 127.0.0.1 - - [10/Mar/2025 20:10:27] "GET /dashboard HTTP/1.1" 200 -
 2025-03-10 20:10:27,458 - INFO - 127.0.0.1 - - [10/Mar/2025 20:10:27] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
 2025-03-10 20:10:27,669 - INFO - 127.0.0.1 - - [10/Mar/2025 20:10:27] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:14:44,952 - INFO -  * Detected change in 'c:\\Users\\Vc\\Desktop\\proyecto_v_github\\app.py', reloading
+2025-03-10 20:14:45,111 - INFO -  * Restarting with stat
+2025-03-10 20:14:46,486 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-10 20:14:46,520 - WARNING -  * Debugger is active!
+2025-03-10 20:14:46,531 - INFO -  * Debugger PIN: 132-016-705
+2025-03-10 20:15:46,423 - INFO -  * Detected change in 'c:\\Users\\Vc\\Desktop\\proyecto_v_github\\app.py', reloading
+2025-03-10 20:15:46,612 - INFO -  * Restarting with stat
+2025-03-10 20:15:47,622 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-10 20:15:47,658 - WARNING -  * Debugger is active!
+2025-03-10 20:15:47,668 - INFO -  * Debugger PIN: 132-016-705
+2025-03-10 20:19:19,916 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:20,013 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:20] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:20,104 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:20] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:20,171 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:20] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:20,501 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:20] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:23,066 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:23,084 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:23] "GET /clientes HTTP/1.1" 200 -
+2025-03-10 20:19:23,374 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:23] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:27,776 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:27] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-10 20:19:28,036 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:28,062 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:28] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:28,092 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:28] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:28,396 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:28] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:34,063 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:34,089 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:34] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:34,371 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:34] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:34,412 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:34] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:35,850 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:35,866 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:35] "GET /categorias HTTP/1.1" 200 -
+2025-03-10 20:19:35,958 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:35] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:38,409 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:38] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-10 20:19:38,728 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:38,754 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:38] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:38,771 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:38] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:38,987 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:38] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:40,605 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:40,636 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:40] "GET /subcategorias HTTP/1.1" 200 -
+2025-03-10 20:19:40,729 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:40] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:43,611 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:43] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-10 20:19:43,960 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:44,059 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:44] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:44,155 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:44] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:44,215 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:44] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:19:45,960 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:46,030 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:46] "GET /empleados HTTP/1.1" 200 -
+2025-03-10 20:19:46,178 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:46] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:50,003 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:50] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-10 20:19:50,375 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:19:50,472 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:50] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:19:50,583 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:50] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:19:50,645 - INFO - 127.0.0.1 - - [10/Mar/2025 20:19:50] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:20,667 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:20:20,687 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:20] "GET /categorias HTTP/1.1" 200 -
+2025-03-10 20:20:20,853 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:20] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:23,563 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:23] "GET /get_previous_page HTTP/1.1" 200 -
+2025-03-10 20:20:23,930 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:20:24,019 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:24] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:20:24,131 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:24] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:24,188 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:24] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:26,221 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:26] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:20:26,332 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:26] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:26,459 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:26] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:28,735 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:20:28,766 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:28] "GET /contacto HTTP/1.1" 200 -
+2025-03-10 20:20:28,921 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:28] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:28,992 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:28] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:30,605 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:30] "GET /registro HTTP/1.1" 200 -
+2025-03-10 20:20:30,879 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:30] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:31,062 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:31] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:32,393 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:32] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:20:32,544 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:32] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:32,677 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:32] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:33,897 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:33] "[32mGET / HTTP/1.1[0m" 302 -
+2025-03-10 20:20:34,177 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:20:34,275 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:34] "GET /dashboard HTTP/1.1" 200 -
+2025-03-10 20:20:34,700 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:34] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:34,732 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:34] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:39,516 - INFO - Acceso permitido a la ruta protegida.
+2025-03-10 20:20:39,620 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:39] "GET /perfil HTTP/1.1" 200 -
+2025-03-10 20:20:39,833 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:39] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:42,384 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:42] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-03-10 20:20:42,518 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:42] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:20:42,654 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:42] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:42,976 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:42] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:45,233 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:45] "GET / HTTP/1.1" 200 -
+2025-03-10 20:20:45,500 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:45] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:45,680 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:45] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:45,872 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:45] "[36mGET /static/img/moto_index.webp HTTP/1.1[0m" 304 -
+2025-03-10 20:20:51,409 - WARNING - Acceso denegado a la ruta protegida. Redirigiendo al login.
+2025-03-10 20:20:51,413 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:51] "[32mGET /nosotros HTTP/1.1[0m" 302 -
+2025-03-10 20:20:51,690 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:51] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:20:52,095 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:52] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:52,146 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:52] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:20:54,487 - WARNING - Acceso denegado a la ruta protegida. Redirigiendo al login.
+2025-03-10 20:20:54,490 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:54] "[32mGET /contacto HTTP/1.1[0m" 302 -
+2025-03-10 20:20:54,812 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:54] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:20:55,245 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:55] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:20:55,249 - INFO - 127.0.0.1 - - [10/Mar/2025 20:20:55] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:21:04,312 - WARNING - Acceso denegado a la ruta protegida. Redirigiendo al login.
+2025-03-10 20:21:04,317 - INFO - 127.0.0.1 - - [10/Mar/2025 20:21:04] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2025-03-10 20:21:04,662 - INFO - 127.0.0.1 - - [10/Mar/2025 20:21:04] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:21:04,779 - INFO - 127.0.0.1 - - [10/Mar/2025 20:21:04] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:21:04,939 - INFO - 127.0.0.1 - - [10/Mar/2025 20:21:04] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:21:29,498 - INFO -  * Detected change in 'c:\\Users\\Vc\\Desktop\\proyecto_v_github\\app.py', reloading
+2025-03-10 20:21:30,343 - INFO -  * Restarting with stat
+2025-03-10 20:21:39,267 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-10 20:21:39,585 - WARNING -  * Debugger is active!
+2025-03-10 20:21:39,696 - INFO -  * Debugger PIN: 132-016-705
+2025-03-10 20:21:56,001 - INFO -  * Detected change in 'c:\\Users\\Vc\\Desktop\\proyecto_v_github\\app.py', reloading
+2025-03-10 20:21:56,952 - INFO -  * Restarting with stat
+2025-03-10 20:22:07,783 - DEBUG - Conexión a la base de datos establecida correctamente.
+2025-03-10 20:22:08,161 - WARNING -  * Debugger is active!
+2025-03-10 20:22:08,282 - INFO -  * Debugger PIN: 132-016-705
+2025-03-10 20:22:42,419 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:42] "GET /registro HTTP/1.1" 200 -
+2025-03-10 20:22:43,371 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:43] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:22:43,433 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:43] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:22:44,638 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:44] "GET /registro HTTP/1.1" 200 -
+2025-03-10 20:22:44,887 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:44] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:22:44,914 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:44] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:22:45,902 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:45] "GET /contacto HTTP/1.1" 200 -
+2025-03-10 20:22:46,165 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:46] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:22:46,325 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:46] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:22:49,635 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:49] "GET / HTTP/1.1" 200 -
+2025-03-10 20:22:49,752 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:49] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:22:49,873 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:49] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:22:57,327 - WARNING - Acceso denegado a la ruta protegida. Redirigiendo al login.
+2025-03-10 20:22:57,332 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:57] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2025-03-10 20:22:57,707 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:57] "GET /login HTTP/1.1" 200 -
+2025-03-10 20:22:57,829 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:57] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:22:57,926 - INFO - 127.0.0.1 - - [10/Mar/2025 20:22:57] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:23:44,459 - INFO - 127.0.0.1 - - [10/Mar/2025 20:23:44] "GET / HTTP/1.1" 200 -
+2025-03-10 20:23:44,603 - INFO - 127.0.0.1 - - [10/Mar/2025 20:23:44] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-03-10 20:23:44,704 - INFO - 127.0.0.1 - - [10/Mar/2025 20:23:44] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+2025-03-10 20:24:09,279 - INFO -  * Detected change in 'c:\\Users\\Vc\\Desktop\\proyecto_v_github\\app.py', reloading

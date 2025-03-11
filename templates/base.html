@@ -68,13 +68,28 @@
 
     <!-- Mobile Menu - Unificado -->
     <div class="mobile-menu" id="mobileMenu">
-        <a href="{{ url_for('index') }}#inicio" class="nav-link">Inicio</a>
-        <a href="{{ url_for('index') }}#servicios" class="nav-link">Servicios</a>
-        <a href="{{ url_for('nosotros') }}#nosotros" class="nav-link">Sobre Nosotros</a>
-        <a href="{{ url_for('contacto') }}" class="nav-link">Contacto</a>
-        <div class="mobile-auth">
-            <a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a>
-            <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+        <div class="nav-menu">
+            <a href="{{ url_for('index') }}#inicio" class="nav-link">Inicio</a>
+            {% if session['user_id'] %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('productos') }}" class="nav-link">Productos</a>
+                <a href="{{ url_for('clientes') }}" class="nav-link">Clientes</a>
+                <a href="{{ url_for('empleados') }}" class="nav-link">Empleados</a>
+            {% else %}
+                <a href="{{ url_for('index') }}#servicios" class="nav-link">Servicios</a>
+                <a href="{{ url_for('nosotros') }}#nosotros" class="nav-link">Sobre Nosotros</a>
+                <a href="{{ url_for('contacto') }}" class="nav-link">Contacto</a>
+            {% endif %}
+        </div>
+        <div class="auth-buttons">
+            {% if session['user_id'] %}
+                <span class="user-name">{{ session['user_name'] }}</span>
+                <a href="{{ url_for('configuracion_usuario') }}" class="btn-register">Configuración</a>
+                <a href="{{ url_for('logout') }}" class="btn-login">Cerrar Sesión</a>
+            {% else %}
+                <a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a>
+                <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+            {% endif %}
         </div>
     </div>
     {% endif %}

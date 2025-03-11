@@ -71,7 +71,9 @@ def login_required(f):
 # Rutas
 @app.route('/')
 def index():
-    return render_template('index.html', show_back_button=False) # No mostramos boton de regreso
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('index.html', show_back_button=False)
 
 
 @app.route('/contacto', methods=['GET', 'POST'])
@@ -896,6 +898,7 @@ def eliminar_proveedor(proveedor_id):
     return redirect(url_for('proveedores'))
 
 @app.route('/nosotros')
+@login_required
 def nosotros():
     return render_template('nosotros.html', show_back_button=False)  # No mostramos boton de regreso
 
