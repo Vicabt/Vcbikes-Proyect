@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, DecimalField, IntegerField, SelectField, SubmitField, EmailField
+from wtforms import StringField, TextAreaField, DecimalField, IntegerField, SelectField, SubmitField, EmailField, FloatField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 class ProductoForm(FlaskForm):
@@ -24,9 +24,15 @@ class ProductoForm(FlaskForm):
         self.proveedor.choices = [('', 'Seleccione un proveedor')]
 
 class NuevaVentaForm(FlaskForm):
-    cliente_id = StringField('Cliente ID', validators=[DataRequired()])
-    producto_id = SelectField('Producto', validators=[DataRequired()])
-    cantidad = IntegerField('Cantidad', validators=[DataRequired(), NumberRange(min=1)])
+    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()])
+    producto_id = SelectField('Producto', coerce=int, validators=[DataRequired()])
+    descuento = FloatField('Descuento (%)', default=0.0, validators=[NumberRange(min=0, max=100)])
+    metodo_pago = SelectField('Método de Pago', 
+                            choices=[('efectivo', 'Efectivo'), 
+                                   ('tarjeta', 'Tarjeta'), 
+                                   ('transferencia', 'Transferencia')],
+                            default='efectivo')
+    notas = TextAreaField('Notas')
     submit = SubmitField('Registrar Venta')
 
 class ClienteForm(FlaskForm):

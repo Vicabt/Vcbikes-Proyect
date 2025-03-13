@@ -537,7 +537,7 @@ def perfil():
         flash('Debes iniciar sesión para acceder a esta página', 'error')
         return redirect(url_for('login'))
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         flash('Usuario no encontrado', 'error')
         return redirect(url_for('dashboard'))
@@ -573,40 +573,98 @@ def ventas():
         try:
             cliente_id = request.form.get('cliente_id')
             producto_id = request.form.get('producto_id')
-            total = request.form.get('total')
-            estado = request.form.get('estado', 'pendiente')  # Por defecto es pendiente
             
-            # Crear nueva venta
+            # Verificar datos obligatorios
+            if not cliente_id or not producto_id:
+                flash('Cliente y producto son campos obligatorios.', 'error')
+                return redirect(url_for('ventas'))
+            
+            # Convertir a enteros
+            try:
+                cliente_id = int(cliente_id)
+                producto_id = int(producto_id)
+            except ValueError:
+                flash('ID de cliente o producto no válidos.', 'error')
+                return redirect(url_for('ventas'))
+            
+            # Verificar que el producto exista y tenga stock
+            producto = Producto.query.get(producto_id)
+            if not producto:
+                flash('Producto no encontrado.', 'error')
+                return redirect(url_for('ventas'))
+            
+            if producto.stock <= 0:
+                flash(f'El producto {producto.nombre} no tiene stock disponible.', 'error')
+                return redirect(url_for('ventas'))
+            
+            # Capturar los demás datos del formulario
+            try:
+                descuento_porcentaje = float(request.form.get('descuento', 0))
+            except ValueError:
+                descuento_porcentaje = 0.0
+                
+            metodo_pago = request.form.get('metodo_pago', 'efectivo')
+            notas = request.form.get('notas', '')
+            
+            # Generar número de factura único
+            ultimo_numero = db.session.query(db.func.max(Venta.numero_factura)).scalar()
+            if ultimo_numero:
+                try:
+                    ultimo_numero = int(ultimo_numero.split('-')[1])
+                    nuevo_numero = f"FAC-{str(ultimo_numero + 1).zfill(6)}"
+                except (ValueError, IndexError):
+                    # Si hay algún error con el formato, empezar desde 1
+                    nuevo_numero = "FAC-000001"
+            else:
+                nuevo_numero = "FAC-000001"
+            
+            # Calcular subtotal (precio base del producto)
+            subtotal = float(producto.precio) if producto.precio is not None else 0.0
+            
+            # Calcular descuento
+            descuento = subtotal * (descuento_porcentaje / 100) if descuento_porcentaje > 0 else 0.0
+            
+            # Calcular IVA y total
+            iva_porcentaje = 0.19  # 19% IVA
+            monto_despues_descuento = subtotal - descuento
+            iva_monto = monto_despues_descuento * iva_porcentaje
+            total = monto_despues_descuento + iva_monto
+            
+            # Crear nueva venta con todos los valores precalculados
             nueva_venta = Venta(
                 cliente_id=cliente_id,
                 producto_id=producto_id,
+                subtotal=subtotal,
+                descuento=descuento,
+                descuento_porcentaje=descuento_porcentaje,
+                iva=iva_porcentaje,
                 total=total,
-                estado=estado,
-                fecha=datetime.now()
+                metodo_pago=metodo_pago,
+                notas=notas,
+                numero_factura=nuevo_numero,
+                estado='completado',
+                fecha=datetime.now(),
+                estado_registro=0
             )
             
-            # Si la venta está completada, actualizar el stock del producto
-            if estado == 'completado':
-                producto = Producto.query.get(producto_id)
-                if producto and producto.stock > 0:
-                    producto.stock -= 1
-                else:
-                    raise ValueError('No hay stock disponible para este producto')
+            # Actualizar stock
+            producto.stock -= 1
             
+            # Guardar en la base de datos
             db.session.add(nueva_venta)
             db.session.commit()
+            
             flash('Venta registrada exitosamente', 'success')
+            # Redirigir a la página de la factura
+            return redirect(url_for('ver_factura', venta_id=nueva_venta.id))
             
         except Exception as e:
             db.session.rollback()
             flash(f'Error al registrar la venta: {str(e)}', 'error')
-        
-        return redirect(url_for('ventas'))
+            return redirect(url_for('ventas'))
 
     # Si es un GET, mostrar la página de ventas
-    # Solo mostrar ventas activas (estado_registro=0)
     ventas = Venta.query.filter_by(estado_registro=0).all()
-    # Recuperar categorías y productos activos
     categorias = Categoria.query.filter_by(estado=0).all()
     productos = Producto.query.filter_by(estado=0).all()
 
@@ -616,17 +674,14 @@ def ventas():
     ventas_pendientes = sum(1 for venta in ventas if venta.estado == 'pendiente')
 
     # Calcular incremento comparando mes actual vs mes anterior
-    # Obtener el primer día del mes actual y del mes anterior
     hoy = datetime.now()
     primer_dia_mes_actual = datetime(hoy.year, hoy.month, 1)
     ultimo_dia_mes_anterior = primer_dia_mes_actual - timedelta(days=1)
     primer_dia_mes_anterior = datetime(ultimo_dia_mes_anterior.year, ultimo_dia_mes_anterior.month, 1)
 
-    # Contar ventas del mes actual y del mes anterior
     ventas_mes_actual = sum(1 for venta in ventas if primer_dia_mes_actual <= venta.fecha <= hoy)
     ventas_mes_anterior = sum(1 for venta in ventas if primer_dia_mes_anterior <= venta.fecha < primer_dia_mes_actual)
 
-    # Calcular incremento
     if ventas_mes_anterior > 0:
         incremento = ((ventas_mes_actual - ventas_mes_anterior) / ventas_mes_anterior) * 100
     else:
@@ -640,8 +695,15 @@ def ventas():
                          incremento=incremento, 
                          form=form, 
                          productos=productos, 
-                         clientes=clientes,  # Agregamos la lista de clientes
+                         clientes=clientes,
                          show_back_button=True)
+
+@app.route('/factura/<int:venta_id>')
+@login_required
+def ver_factura(venta_id):
+    """Vista para mostrar la factura de una venta específica"""
+    venta = Venta.query.get_or_404(venta_id)
+    return render_template('factura.html', venta=venta, show_back_button=True)
 
 @app.route('/ventas/editar/<int:venta_id>', methods=['POST'])
 @login_required
@@ -898,7 +960,6 @@ def eliminar_proveedor(proveedor_id):
     return redirect(url_for('proveedores'))
 
 @app.route('/nosotros')
-@login_required
 def nosotros():
     return render_template('nosotros.html', show_back_button=False)  # No mostramos boton de regreso
 
@@ -917,7 +978,7 @@ def cambiar_password():
         password_confirmar = request.form.get('password_confirmar')
 
         # Obtener el usuario actual
-        user = User.query.get(session['user_id'])
+        user = db.session.get(User, session['user_id'])
 
         # Verificar que la contraseña actual sea correcta
         if not user.check_password(password_actual):
@@ -960,4 +1021,5 @@ if __name__ == '__main__':
         db.create_all()  # Crea las tablas en la base de datos si no existen
         initialize_data()  # Inicializa los datos de ejemplo
         logging.debug('Conexión a la base de datos establecida correctamente.')
-     app.run(debug=True)
+     app.run(host="0.0.0.0", port=5000, debug=True)
+     #app.run debug=True)

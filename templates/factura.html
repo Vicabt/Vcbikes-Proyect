@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-body">
+            <!-- Encabezado de la factura -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <h2 class="mb-3">FACTURA</h2>
+                    <strong>Número de Factura:</strong> {{ venta.numero_factura }}<br>
+                    <strong>Fecha:</strong> {{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}<br>
+                    <strong>Estado:</strong> {{ venta.estado.capitalize() }}
+                </div>
+                <div class="col-6 text-end">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="max-height: 100px;">
+                    <p class="mt-2">
+                        <strong>VC BIKES</strong><br>
+                        Dirección de la empresa<br>
+                        Teléfono: (123) 456-7890<br>
+                        Email: info@vcbikes.com
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información del cliente -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4 class="mb-3">Información del Cliente</h4>
+                    <strong>Nombre:</strong> {{ venta.cliente.nombre }}<br>
+                    <strong>Documento:</strong> {{ venta.cliente.documento_identidad }}<br>
+                    <strong>Dirección:</strong> {{ venta.cliente.direccion }}<br>
+                    <strong>Teléfono:</strong> {{ venta.cliente.telefono }}<br>
+                    <strong>Email:</strong> {{ venta.cliente.email }}
+                </div>
+            </div>
+
+            <!-- Detalles del producto -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4 class="mb-3">Detalles del Producto</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Código</th>
+                                <th>Precio Unitario</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ venta.producto.nombre }}</td>
+                                <td>{{ venta.producto.codigo }}</td>
+                                <td>${{ "%.2f"|format(venta.producto.precio) }}</td>
+                                <td>1</td>
+                                <td>${{ "%.2f"|format(venta.subtotal) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Resumen de la factura -->
+            <div class="row">
+                <div class="col-6">
+                    <h4>Información de Pago</h4>
+                    <p>
+                        <strong>Método de Pago:</strong> {{ venta.metodo_pago.capitalize() }}<br>
+                        {% if venta.notas %}
+                        <strong>Notas:</strong> {{ venta.notas }}<br>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <table class="table table-bordered">
+                        <tr>
+                            <td><strong>Subtotal:</strong></td>
+                            <td class="text-end">${{ "%.2f"|format(venta.subtotal) }}</td>
+                        </tr>
+                        {% if venta.descuento > 0 %}
+                        <tr>
+                            <td><strong>Descuento ({{ "%.1f"|format(venta.descuento_porcentaje) }}%):</strong></td>
+                            <td class="text-end">-${{ "%.2f"|format(venta.descuento) }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td><strong>IVA ({{ "%.1f"|format(venta.iva * 100) }}%):</strong></td>
+                            <td class="text-end">${{ "%.2f"|format(venta.subtotal * venta.iva) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total:</strong></td>
+                            <td class="text-end"><strong>${{ "%.2f"|format(venta.total) }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pie de página -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <p class="mb-0">¡Gracias por su compra!</p>
+                    <small class="text-muted">Esta factura es un documento válido para efectos fiscales.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <button onclick="window.print()" class="btn btn-primary me-2">
+                <i class="fas fa-print"></i> Imprimir Factura
+            </button>
+            <a href="{{ url_for('ventas') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Ventas
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
