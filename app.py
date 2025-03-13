@@ -55,6 +55,25 @@ def initialize_data():
         
         db.session.add_all([cat1, cat2, cat3])
         db.session.commit()
+    
+    # Asignar roles a usuarios existentes que no tienen rol asignado
+    usuarios_sin_rol = User.query.filter(User.rol.is_(None)).all()
+    for usuario in usuarios_sin_rol:
+        # Por defecto, asignaremos el rol de administrador al primer usuario existente
+        # y empleado a los demás
+        if usuario == usuarios_sin_rol[0]:
+            usuario.rol = 'administrador'
+        else:
+            usuario.rol = 'empleado'
+        logging.info(f'Asignando rol {usuario.rol} al usuario {usuario.username}')
+    
+    if usuarios_sin_rol:
+        try:
+            db.session.commit()
+            logging.info(f'Se asignaron roles a {len(usuarios_sin_rol)} usuarios existentes')
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f'Error al asignar roles a usuarios existentes: {str(e)}')
 
 # Decorator para requerir login
 def login_required(f):
@@ -68,11 +87,32 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Decorator para verificar roles
+def role_required(roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                flash('Por favor inicia sesión para acceder.', 'error')
+                logging.warning('Acceso denegado a la ruta protegida. Redirigiendo al login.')
+                return redirect(url_for('login'))
+            
+            # Obtener el usuario actual
+            user = User.query.get(session['user_id'])
+            if not user or user.rol not in roles:
+                flash('No tienes permisos para acceder a esta funcionalidad.', 'error')
+                logging.warning(f'Usuario {user.username} intentó acceder a una ruta protegida sin los permisos necesarios.')
+                return redirect(url_for('dashboard'))
+            
+            logging.info(f'Acceso permitido a la ruta protegida para el usuario {user.username} con rol {user.rol}.')
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 # Rutas
 @app.route('/')
 def index():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+    # Permitir que la página de inicio se muestre aunque el usuario esté logueado
     return render_template('index.html', show_back_button=False)
 
 
@@ -145,12 +185,15 @@ def registro():
             return render_template('registro.html')
 
         try:
+            # Determinar el rol del usuario
+            rol = 'administrador' if username.lower() == 'admin' else 'empleado'
+            
             # Crea un nuevo usuario
             password_hash = generate_password_hash(password)
-            new_user = User(username=username, email=email, name=name, telefono=telefono, password_hash=password_hash)
+            new_user = User(username=username, email=email, name=name, telefono=telefono, password_hash=password_hash, rol=rol)
             db.session.add(new_user)
             db.session.commit()
-            logging.debug(f'Usuario creado: {new_user.username}, Email: {new_user.email}')  # Log de usuario creado
+            logging.debug(f'Usuario creado: {new_user.username}, Email: {new_user.email}, Rol: {new_user.rol}')
             logging.debug(f'Hash de contraseña: {new_user.password_hash}')  # Log del hash de la contraseña
             flash('Te has registrado exitosamente! Ahora puedes iniciar sesión.', 'success')
             return redirect(url_for('login'))
@@ -171,6 +214,9 @@ def recuperar_password():
 @login_required
 def dashboard():
     try:
+        # Obtener el usuario actual
+        current_user = User.query.get(session['user_id'])
+        
         # Estadísticas básicas - solo contar registros activos (estado=0)
         total_productos = Producto.query.filter_by(estado=0).count()
         total_clientes = Cliente.query.filter_by(estado=0).count()
@@ -242,7 +288,7 @@ def dashboard():
                              total_proveedores=total_proveedores,
                              total_empleados=total_empleados,
                              promedio_venta=promedio_venta,
-                             show_back_button=False)
+                             user_rol=current_user.rol)
                              
     except Exception as e:
         app.logger.error(f'Error en el dashboard: {str(e)}')
@@ -259,11 +305,12 @@ def dashboard():
                              total_proveedores=0,
                              total_empleados=0,
                              promedio_venta=0,
-                             show_back_button=False)
+                             user_rol='')
 
 
 @app.route('/categorias', methods=['GET', 'POST'])
 @login_required
+@role_required(['administrador'])
 def categorias():
     session['previous_page'] = url_for('dashboard')
     # Solo mostrar categorías activas (estado=0)
@@ -272,6 +319,7 @@ def categorias():
 
 @app.route('/categorias/editar', methods=['POST'])
 @login_required
+@role_required(['administrador'])
 def editar_categoria():
     if not request.is_json:
         return jsonify({'error': 'La solicitud debe ser JSON'}), 400
@@ -300,6 +348,7 @@ def editar_categoria():
 
 @app.route('/categorias/eliminar/<int:category_id>', methods=['POST'])
 @login_required
+@role_required(['administrador'])
 def eliminar_categoria(category_id):
     categoria = Categoria.query.get_or_404(category_id)
     try:
@@ -380,6 +429,7 @@ from datetime import datetime
 
 @app.route('/empleados', methods=['GET', 'POST'])
 @login_required
+@role_required(['administrador'])
 def empleados():
     session['previous_page'] = url_for('dashboard')
     # Solo mostrar empleados activos (estado=0)
@@ -388,6 +438,7 @@ def empleados():
 
 @app.route('/empleados/editar/<int:empleado_id>', methods=['GET', 'POST'])
 @login_required
+@role_required(['administrador'])
 def editar_empleado(empleado_id):
     empleado = Empleado.query.get_or_404(empleado_id)
 
@@ -422,6 +473,7 @@ def editar_empleado(empleado_id):
 
 @app.route('/empleados/eliminar/<int:empleado_id>', methods=['POST'])
 @login_required
+@role_required(['administrador'])
 def eliminar_empleado(empleado_id):
     empleado = Empleado.query.get_or_404(empleado_id)
     try:
@@ -439,6 +491,7 @@ from flask import jsonify
 
 @app.route('/get_employee_details/<int:empleado_id>')
 @login_required
+@role_required(['administrador'])
 def get_employee_details(empleado_id):
     empleado = Empleado.query.get_or_404(empleado_id)
     # Convierte la fecha a string

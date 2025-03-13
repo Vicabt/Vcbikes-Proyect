@@ -128,6 +128,7 @@ class User(db.Model):
     telefono = db.Column(db.String(20))
     username = db.Column(db.String(20), unique=True, nullable=False)
     estado = db.Column(db.Integer, default=0)  # 0 = activo, 1 = eliminado
+    rol = db.Column(db.String(20), default='empleado')  # Valores: 'administrador', 'empleado'
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
