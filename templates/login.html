@@ -31,6 +31,7 @@
     <div class="auth-box">
         <h2 class="text-center mb-4" id="login-title">Iniciar Sesión</h2>
         <form method="POST" action="{{ url_for('login') }}" aria-label="Iniciar Sesión">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group mb-3">
                 <label class="form-label" for="username">Usuario</label>
                 <div class="input-group">
