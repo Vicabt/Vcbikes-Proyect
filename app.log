@@ -8293,6 +8293,7 @@ smtplib.SMTPAuthenticationError: (534, b'5.7.9 Application-specific password req
 2025-03-18 13:47:50,927 - INFO - 127.0.0.1 - - [18/Mar/2025 13:47:50] "GET /login HTTP/1.1" 200 -
 2025-03-18 13:47:51,046 - INFO - 127.0.0.1 - - [18/Mar/2025 13:47:51] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
 2025-03-18 13:47:51,198 - INFO - 127.0.0.1 - - [18/Mar/2025 13:47:51] "[36mGET /static/img/logo.png HTTP/1.1[0m" 304 -
+<<<<<<< HEAD
 2025-03-19 18:26:06,750 - INFO - Mail Server: smtp.gmail.com
 2025-03-19 18:26:06,750 - INFO - Mail Port: 587
 2025-03-19 18:26:06,750 - INFO - Mail Username: Set
@@ -8455,3 +8456,5 @@ smtplib.SMTPAuthenticationError: (534, b'5.7.9 Application-specific password req
 2025-03-19 18:44:40,944 - INFO - 127.0.0.1 - - [19/Mar/2025 18:44:40] "GET /reset-password/InZpY2FiNjZAZ21haWwuY29tIg.Z9tW0g.n3uHRRAW73yo-kcBd4cGjP0LLMU HTTP/1.1" 200 -
 2025-03-19 18:44:41,190 - INFO - 127.0.0.1 - - [19/Mar/2025 18:44:41] "GET /static/css/styles.css HTTP/1.1" 200 -
 2025-03-19 18:44:51,288 - INFO - 127.0.0.1 - - [19/Mar/2025 18:44:51] "GET /static/img/logo.png HTTP/1.1" 200 -
+=======
+>>>>>>> 16c8ceeda5e771d7334c5c3003b6e421b3485d40
