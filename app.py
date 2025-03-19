@@ -11,13 +11,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import logging
 from forms import ProductoForm, NuevaVentaForm, ClienteForm
+from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Mail, Message
+from flask_wtf.csrf import CSRFProtect
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Crear la aplicación Flask
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_key_for_development')  # Use environment variable
+
+# Configure secret key and session settings
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'fallback_key_for_development')
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60)
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour CSRF token timeout
+app.config['WTF_CSRF_SSL_STRICT'] = False  # Set to True in production with HTTPS
+
+# Initialize CSRF protection
+csrf = CSRFProtect()
+csrf.init_app(app)
+
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configuración para subida de imágenes
@@ -43,6 +58,57 @@ migrate = Migrate(app, db)  # Inicializa Flask-Migrate
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+# Configuración de Flask-Mail
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+app.config['MAIL_DEBUG'] = True
+app.config['MAIL_SUPPRESS_SEND'] = False
+app.config['MAIL_MAX_EMAILS'] = None
+
+# Debug logging for email configuration
+app.logger.info(f"Mail Server: {app.config['MAIL_SERVER']}")
+app.logger.info(f"Mail Port: {app.config['MAIL_PORT']}")
+app.logger.info(f"Mail Username: {'Set' if app.config['MAIL_USERNAME'] else 'Not set'}")
+app.logger.info(f"Mail Password: {'Set' if app.config['MAIL_PASSWORD'] else 'Not set'}")
+app.logger.info(f"Mail Default Sender: {'Set' if app.config['MAIL_DEFAULT_SENDER'] else 'Not set'}")
+
+mail = Mail(app)
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+# Add this function to handle email sending
+def send_password_reset_email(user_email, reset_url):
+    try:
+        app.logger.info(f'Attempting to send password reset email to {user_email}')
+        app.logger.info(f'Using mail server: {app.config["MAIL_SERVER"]}:{app.config["MAIL_PORT"]}')
+        app.logger.info(f'Using username: {app.config["MAIL_USERNAME"]}')
+        
+        # Create the message
+        msg = Message('Restablecer tu contraseña',
+                    sender=app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[user_email])
+        msg.body = f'''Para restablecer tu contraseña, haz clic en el siguiente enlace:
+
+{reset_url}
+
+Si no solicitaste un restablecimiento de contraseña, ignora este mensaje.
+'''
+        # Send the email - we're already in a request context
+        mail.send(msg)
+        
+        app.logger.info(f'Successfully sent password reset email to {user_email}')
+        return True
+    except Exception as e:
+        app.logger.error(f'Failed to send password reset email: {str(e)}')
+        app.logger.error(f'Error type: {type(e).__name__}')
+        import traceback
+        app.logger.error(f'Traceback: {traceback.format_exc()}')
+        return False
+
 
 # Función para inicializar datos
 def initialize_data():
@@ -108,6 +174,7 @@ def role_required(roles):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
 
 # Rutas
 @app.route('/')
@@ -208,7 +275,64 @@ def registro():
 
 @app.route('/recuperar-password', methods=['GET', 'POST'])
 def recuperar_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        app.logger.debug(f'Received password reset request for email: {email}')
+        
+        user = User.query.filter_by(email=email).first()
+        app.logger.info(f'User found for email {email}: {"Yes" if user else "No"}')
+
+        if user:
+            try:
+                app.logger.info('Generating password reset token')
+                token = serializer.dumps(email, salt='password-reset-salt')
+                reset_url = url_for('reset_password', token=token, _external=True)
+                app.logger.info(f'Reset URL generated: {reset_url}')
+                
+                app.logger.info('Attempting to send password reset email')
+                if send_password_reset_email(email, reset_url):
+                    app.logger.info('Password reset email sent successfully')
+                    flash('Se ha enviado un enlace para restablecer tu contraseña.', 'success')
+                else:
+                    app.logger.error('Failed to send password reset email')
+                    flash('Error al enviar el correo. Inténtalo de nuevo más tarde.', 'error')
+            except Exception as e:
+                app.logger.error(f'Error in password reset process: {str(e)}')
+                import traceback
+                app.logger.error(f'Traceback: {traceback.format_exc()}')
+                flash('Error al procesar la solicitud. Inténtalo de nuevo más tarde.', 'error')
+        else:
+            app.logger.warning(f'No user found with email: {email}')
+            flash('No se encontró una cuenta con ese correo electrónico.', 'error')
+
     return render_template('recuperacion.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)
+    except Exception:
+        flash('El enlace para restablecer la contraseña es inválido o ha expirado.', 'error')
+        return redirect(url_for('recuperar_password'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if new_password != confirm_password:
+            flash('Las contraseñas no coinciden.', 'error')
+            return redirect(url_for('reset_password', token=token))
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.set_password(new_password)
+            db.session.commit()
+            flash('Tu contraseña ha sido restablecida exitosamente.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Usuario no encontrado.', 'error')
+
+    return render_template('reset_password.html', token=token)
 
 @app.route('/dashboard')
 @login_required

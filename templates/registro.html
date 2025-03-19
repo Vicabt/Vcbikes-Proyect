@@ -31,6 +31,7 @@
     <div class="auth-box">
         <h2 class="text-center mb-4">Registro</h2>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group mb-3">
                 <label class="form-label">Nombre</label>
                 <div class="input-group">
